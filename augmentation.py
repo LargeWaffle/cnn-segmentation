@@ -1,4 +1,4 @@
-from imports import *
+from imports import np, plt, gridspec, ImageDataGenerator
 
 
 def getClassName(classID, cats):
@@ -10,7 +10,7 @@ def getClassName(classID, cats):
 
 def countFilteredClasses(coco, classes):
     images = []
-    if classes != None:
+    if classes is not None:
         # iterate for each individual class in the list
         for className in classes:
             # get all images containing given class
