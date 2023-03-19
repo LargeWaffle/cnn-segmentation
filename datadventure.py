@@ -6,7 +6,7 @@ from pycocotools.coco import COCO
 
 
 def main():
-    coco_annotation_file_path = "data/annotations/instances_val2017.json"
+    coco_annotation_file_path = "data/annotation_folder/annotations/instances_val2017.json"
 
     coco_annotation = COCO(annotation_file=coco_annotation_file_path)
 

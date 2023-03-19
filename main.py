@@ -4,7 +4,7 @@ import helpers as tools
 from cnn import get_premade_model, preview_results
 
 data_folder = 'data'
-annFile = '{}/annotations/instances_{}2017.json'.format(data_folder, 'train')
+annFile = '{}/annotation_folder/annotations/instances_{}2017.json'.format(data_folder, 'train')
 
 coco = COCO(annFile)
 
@@ -55,8 +55,8 @@ aug.visualizeGenerator(train_aug)
 model = get_premade_model()
 
 # Predictions will have shape (batch_size, h, w, dataset_output_classes)
-predictions = model.predict(train_aug[:10])
-features = model.predict(train_aug[:10])
+predictions = model.predict(train_aug)
+features = model.predict(train_aug)
 
 preview_results(predictions, features)
 

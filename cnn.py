@@ -8,6 +8,7 @@ def get_premade_model():
     print("### HRNet_coco-hrnetv2-w48_1 ###")
     # model = hub.load('https://tfhub.dev/google/HRNet/coco-hrnetv2-w48/1')
     model = saved_model.load("models/HRNet/")
+    print("### Model loaded ###")
 
     return model
 

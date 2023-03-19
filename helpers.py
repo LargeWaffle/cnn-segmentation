@@ -3,7 +3,7 @@ from imports import *
 
 def filterDataset(folder, classes=None, mode='train'):
     # initialize COCO api for instance annotations
-    annFile = '{}/annotations/instances_{}2017.json'.format(folder, mode)
+    annFile = '{}/annotation_folder/annotations/instances_{}2017.json'.format(folder, mode)
     coco = COCO(annFile)
 
     images = []
@@ -113,7 +113,7 @@ def dataGeneratorCoco(images, classes, coco, folder,
             mask[i - c] = train_mask
 
         c += batch_size
-        if (c + batch_size >= dataset_size):
+        if c + batch_size >= dataset_size:
             c = 0
             random.shuffle(images)
         yield img, mask

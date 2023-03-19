@@ -63,6 +63,7 @@ def augmentationsGenerator(gen, augGeneratorArgs, seed=None):
 
         yield img_aug, mask_aug
 
+
 def visualizeGenerator(gen):
     # Iterate the generator to get image and mask batches
     img, mask = next(gen)
@@ -76,9 +77,9 @@ def visualizeGenerator(gen):
         for j in range(4):
             ax = plt.Subplot(fig, innerGrid[j])
             if i == 1:
-                ax.imshow(img[j])
-            else:
                 ax.imshow(mask[j][:, :, 0])
+            else:
+                ax.imshow(img[j])
 
             ax.axis('off')
             fig.add_subplot(ax)
