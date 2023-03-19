@@ -1,8 +1,8 @@
-from imports import random, COCO
+from imports import random, COCO, plt
 import augmentation as aug
 import helpers as tools
 from cnn import get_premade_model, preview_results
-
+"""
 data_folder = 'data'
 annFile = '{}/annotation_folder/annotations/instances_{}2017.json'.format(data_folder, 'train')
 
@@ -17,6 +17,7 @@ desired_classes = random.sample(nms, 5)  # nb of class we take
 print("### Loading data ###")
 train_img, train_size, coco_train, train_img_ids = tools.filterDataset(data_folder, desired_classes, 'train')
 val_img, val_size, coco_val, _ = tools.filterDataset(data_folder, desired_classes, 'val')
+test_img, test_size, coco_test, test_img_ids = tools.filterDataset(data_folder, desired_classes, 'val')
 
 nb_epochs = 10
 batch_size = 5
@@ -29,6 +30,7 @@ train_gen = tools.dataGeneratorCoco(train_img, desired_classes, coco_train, data
 
 val_gen = tools.dataGeneratorCoco(val_img, desired_classes, coco_val, data_folder,
                                   mode='val', batch_size=batch_size, mask_type=mask_type)
+
 
 epoch_steps = train_size // batch_size
 val_steps = val_size // batch_size
@@ -51,12 +53,16 @@ train_aug = aug.augmentationsGenerator(train_gen, augGeneratorArgs)
 val_aug = aug.augmentationsGenerator(val_gen, augGeneratorArgs)
 
 aug.visualizeGenerator(train_aug)
-
+"""
 model = get_premade_model()
 
+test = tools.load_image_into_numpy_array("data/images/test/000000000001.jpg")
+plt.imshow(test[0])
+plt.show()
+
 # Predictions will have shape (batch_size, h, w, dataset_output_classes)
-predictions = model.predict(train_aug)
-features = model.predict(train_aug)
+predictions = model.predict(test)
+features = model.get_features(test)
 
 preview_results(predictions, features)
 

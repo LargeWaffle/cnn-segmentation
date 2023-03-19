@@ -1,3 +1,5 @@
+import numpy as np
+
 from imports import COCOeval, Precision, Recall, AUC, plt
 from tensorflow import saved_model
 import tensorflow_hub as hub
@@ -37,6 +39,7 @@ def train_model(*, model, train_data, val_data, steps, val_steps, epochs):
                         verbose=True)
 
 
+"""
 def preview_results(img_list, feats=None):
     num_images = len(img_list)
     fig, axes = plt.subplots(1, num_images, figsize=(5 * num_images, 5))
@@ -51,6 +54,11 @@ def preview_results(img_list, feats=None):
 
     plt.tight_layout()
     plt.show()
+"""
+
+
+def preview_results(predictions, features):
+    pass
 
 
 def evaluate_model(*, ann_train, train_ids):
