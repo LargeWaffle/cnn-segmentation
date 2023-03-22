@@ -1,4 +1,4 @@
-from imports import random, COCO, plt
+from imports import random, COCO, plt, np, Image
 import augmentation as aug
 import helpers as tools
 from cnn import get_premade_model, preview_results
@@ -63,7 +63,7 @@ plt.show()
 # Predictions will have shape (batch_size, h, w, dataset_output_classes)
 predictions = model.predict(test)
 features = model.get_features(test)
+pred = predictions[0]
 
-preview_results(predictions, features)
 
 print("\n### End of program ###\n")

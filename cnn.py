@@ -1,6 +1,6 @@
 import numpy as np
 
-from imports import COCOeval, Precision, Recall, AUC, plt
+from imports import COCOeval, Precision, Recall, AUC, plt, Image, random
 from tensorflow import saved_model
 import tensorflow_hub as hub
 
@@ -59,6 +59,27 @@ def preview_results(img_list, feats=None):
 
 def preview_results(predictions, features):
     pass
+
+
+def show_seg_img(img):
+
+    pred = img.numpy().reshape(-1, 202)
+    pred_classes = np.argmax(pred, axis=1)
+
+    pred_classes = pred_classes.reshape(480, 640)
+
+    color_dict = {}
+    segmentation_image = np.zeros((480, 640, 3), dtype=np.uint8)
+    for i in range(480):
+        for j in range(640):
+            class_index = pred_classes[i, j]
+            segmentation_image[i, j, :] = random.choices(range(256), k=3)
+
+    # Step 6
+    segmentation_image = Image.fromarray(segmentation_image)
+    segmentation_image.show()
+
+
 
 
 def evaluate_model(*, ann_train, train_ids):
