@@ -1,4 +1,8 @@
-from imports import np, plt, gridspec, ImageDataGenerator
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
+
+from keras.preprocessing.image import ImageDataGenerator
 
 
 def getClassName(classID, cats):

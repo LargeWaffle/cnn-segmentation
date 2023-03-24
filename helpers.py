@@ -1,27 +1,25 @@
-from imports import *
+import random
+from urllib.request import urlopen
+
+import numpy as np
+from PIL import Image
+import cv2
+
+import skimage.io as skio
+from io import BytesIO
+
+from pycocotools.coco import COCO
+from tensorflow import io as tfio
 
 
 def load_image_into_numpy_array(path):
-    """Load an image from file into a numpy array.
-
-    Puts image into numpy array to feed into tensorflow graph.
-    Note that by convention we put it into a numpy array with shape
-    (height, width, channels), where channels=3 for RGB.
-
-    Args:
-      path: the file path to the image
-
-    Returns:
-      uint8 numpy array with shape (img_height, img_width, 3)
-    """
-
     if path.startswith('http'):
         response = urlopen(path)
         image_data = response.read()
         image_data = BytesIO(image_data)
         image = Image.open(image_data)
     else:
-        image_data = tf.io.gfile.GFile(path, 'rb').read()
+        image_data = tfio.gfile.GFile(path, 'rb').read()
         image = Image.open(BytesIO(image_data))
 
     (im_width, im_height) = image.size
@@ -69,7 +67,7 @@ def getClassName(classID, cats):
 
 def getImage(imageObj, img_folder, input_image_size):
     # Read and normalize an image
-    train_img = io.imread(img_folder + '/' + imageObj['file_name']) / 255.0
+    train_img = skio.imread(img_folder + '/' + imageObj['file_name']) / 255.0
     # Resize
     train_img = cv2.resize(train_img, input_image_size)
     if len(train_img.shape) == 3 and train_img.shape[2] == 3:  # If it is a RGB 3 channel image
@@ -127,14 +125,14 @@ def dataGeneratorCoco(images, classes, coco, folder,
         for i in range(c, c + batch_size):  # initially from 0 to batch_size, when c = 0
             imageObj = images[i]
 
-            ### Retrieve Image ###
+            # retrieve Image
             train_img = getImage(imageObj, img_folder, input_image_size)
 
-            ### Create Mask ###
+            # create Mask
             if mask_type == "binary":
                 train_mask = getBinaryMask(imageObj, coco, catIds, input_image_size)
 
-            elif mask_type == "normal":
+            else:  # replaces mask_type == "normal"
                 train_mask = getNormalMask(imageObj, classes, coco, catIds, input_image_size)
 
                 # Add to respective batch sized arrays

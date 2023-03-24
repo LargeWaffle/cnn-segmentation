@@ -1,4 +1,10 @@
-from imports import random, COCO, plt, np, Image
+import random
+import numpy as np
+from PIL import Image
+import matplotlib.pyplot as plt
+
+from pycocotools.coco import COCO
+
 import augmentation as aug
 import helpers as tools
 from cnn import get_premade_model, preview_results
@@ -56,6 +62,7 @@ aug.visualizeGenerator(train_aug)
 """
 
 model = get_premade_model()
+# model.summary(expand_nested=True)
 
 test = tools.load_image_into_numpy_array("data/images/test/000000000001.jpg")
 plt.imshow(test[0])
