@@ -54,6 +54,7 @@ val_aug = aug.augmentationsGenerator(val_gen, augGeneratorArgs)
 
 aug.visualizeGenerator(train_aug)
 """
+
 model = get_premade_model()
 
 test = tools.load_image_into_numpy_array("data/images/test/000000000001.jpg")

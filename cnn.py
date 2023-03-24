@@ -62,7 +62,6 @@ def preview_results(predictions, features):
 
 
 def show_seg_img(img):
-
     pred = img.numpy().reshape(-1, 202)
     pred_classes = np.argmax(pred, axis=1)
 
@@ -78,8 +77,6 @@ def show_seg_img(img):
     # Step 6
     segmentation_image = Image.fromarray(segmentation_image)
     segmentation_image.show()
-
-
 
 
 def evaluate_model(*, ann_train, train_ids):

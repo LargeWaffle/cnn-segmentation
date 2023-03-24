@@ -14,7 +14,7 @@ def load_image_into_numpy_array(path):
     Returns:
       uint8 numpy array with shape (img_height, img_width, 3)
     """
-    image = None
+
     if path.startswith('http'):
         response = urlopen(path)
         image_data = response.read()
