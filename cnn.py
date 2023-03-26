@@ -1,18 +1,13 @@
-import random
-import numpy as np
-from PIL import Image
-
-from pycocotools.cocoeval import COCOeval
-
-from tensorflow import saved_model
-# import tensorflow_hub as hub
-
-from keras.models import Model
-from keras.optimizers import Adam
-from keras.losses import CategoricalCrossentropy
-from keras.metrics import Precision, Recall, AUC
 from keras.layers import Input, Conv2D, MaxPooling2D, Dropout, UpSampling2D, \
     BatchNormalization, Concatenate, Activation, Add
+from keras.losses import CategoricalCrossentropy
+from keras.metrics import Precision, Recall, AUC
+from keras.models import Model
+from keras.optimizers import Adam
+from pycocotools.cocoeval import COCOeval
+from tensorflow import saved_model
+
+# import tensorflow_hub as hub
 
 
 def get_premade_model():
@@ -56,7 +51,6 @@ def upsampling_layer(inputs, residual, conv_filters=64):
 
 
 def get_model(input_size, num_classes, before_pooling=1, nb_pooling=4):
-
     print("### Personnal model ###")
     conv_filter_size = [64, 128, 256, 512]
     encoder_blocs = []
@@ -111,46 +105,6 @@ def train_model(*, model, train_data, val_data, steps, val_steps, epochs):
                         verbose=True)
 
     return history
-
-
-"""
-def preview_results(img_list, feats=None):
-    num_images = len(img_list)
-    fig, axes = plt.subplots(1, num_images, figsize=(5 * num_images, 5))
-
-    for i, img in enumerate(img_list):
-        axes[i].imshow(img)
-        axes[i].set_title("")
-
-        if feats is not None:
-            axes[i].imshow(feats)
-            axes[i].set_title("")
-
-    plt.tight_layout()
-    plt.show()
-"""
-
-
-def preview_results(predictions, features):
-    pass
-
-
-def show_seg_img(img):
-    pred = img.numpy().reshape(-1, 202)
-    pred_classes = np.argmax(pred, axis=1)
-
-    pred_classes = pred_classes.reshape(480, 640)
-
-    color_dict = {}
-    segmentation_image = np.zeros((480, 640, 3), dtype=np.uint8)
-    for i in range(480):
-        for j in range(640):
-            class_index = pred_classes[i, j]
-            segmentation_image[i, j, :] = random.choices(range(256), k=3)
-
-    # Step 6
-    segmentation_image = Image.fromarray(segmentation_image)
-    segmentation_image.show()
 
 
 def evaluate_model(*, ann_train, train_ids):

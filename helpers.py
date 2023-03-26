@@ -1,40 +1,25 @@
 import random
-from urllib.request import urlopen
 
-import numpy as np
-from PIL import Image
 import cv2
-
+import numpy as np
 import skimage.io as skio
-from io import BytesIO
-
 from pycocotools.coco import COCO
-from tensorflow import io as tfio
-
-
-def load_image_into_numpy_array(path):
-    if path.startswith('http'):
-        response = urlopen(path)
-        image_data = response.read()
-        image_data = BytesIO(image_data)
-        image = Image.open(image_data)
-    else:
-        image_data = tfio.gfile.GFile(path, 'rb').read()
-        image = Image.open(BytesIO(image_data))
-
-    (im_width, im_height) = image.size
-
-    return np.array(image.getdata()).reshape(
-        (1, im_height, im_width, 3)).astype(np.uint8)
+import matplotlib.colors as mcolors
+import matplotlib.pyplot as plt
 
 
 def filterDataset(folder, classes=None, mode='train'):
     # initialize COCO api for instance annotations
-    annFile = '{}/annotation_folder/annotations/instances_{}2017.json'.format(folder, mode)
+    if mode == 'test':
+        annFile = '{}/annotation_folder/annotations/image_info_{}2017.json'.format(folder, mode)
+    else:
+        annFile = '{}/annotation_folder/annotations/instances_{}2017.json'.format(folder, mode)
+
     coco = COCO(annFile)
 
     images = []
-    if classes is not None:
+
+    if classes:
         # iterate for each individual class in the list
         for className in classes:
             # get all images containing given categories
@@ -144,3 +129,69 @@ def dataGeneratorCoco(images, classes, coco, folder,
             c = 0
             random.shuffle(images)
         yield img, mask
+
+
+def dataTestGeneratorCoco(images, folder, input_image_size=(224, 224), batch_size=4):
+    img_folder = '{}/images/{}'.format(folder, 'test')
+    dataset_size = len(images)
+
+    c = 0
+    while True:
+        img = np.zeros((batch_size, input_image_size[0], input_image_size[1], 3)).astype('float')
+
+        for i in range(c, c + batch_size):  # initially from 0 to batch_size, when c = 0
+            imageObj = images[i]
+
+            # retrieve Image
+            train_img = getImage(imageObj, img_folder, input_image_size)
+
+            # Add to respective batch sized arrays
+            img[i - c] = train_img
+
+        c += batch_size
+        if c + batch_size >= dataset_size:
+            c = 0
+            random.shuffle(images)
+        yield img
+
+
+"""
+def preview_results(img_list, feats=None):
+    num_images = len(img_list)
+    fig, axes = plt.subplots(1, num_images, figsize=(5 * num_images, 5))
+
+    for i, img in enumerate(img_list):
+        axes[i].imshow(img)
+        axes[i].set_title("")
+
+        if feats is not None:
+            axes[i].imshow(feats)
+            axes[i].set_title("")
+
+    plt.tight_layout()
+    plt.show()
+"""
+
+color_list = [mcolors.to_rgb(hexcolor) for hexcolor in mcolors.CSS4_COLORS.values()]
+
+
+def preview_results(predictions, features=None):
+    for img in predictions:
+        show_seg_img(img)
+
+
+def show_seg_img(img):
+    pred = img.numpy().reshape(-1, 202)
+    pred_classes = np.argmax(pred, axis=1)
+
+    pred_classes = pred_classes.reshape(480, 640)
+
+    segmentation_image = np.zeros((480, 640, 3), dtype=np.float32)
+    for i in range(480):
+        for j in range(640):
+            class_index = pred_classes[i, j] % len(color_list)
+            segmentation_image[i, j, :] = color_list[class_index]
+
+    plt.imshow(segmentation_image)
+    plt.show()
+    plt.show()
