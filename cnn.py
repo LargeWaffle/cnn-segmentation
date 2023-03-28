@@ -5,8 +5,8 @@ from keras.metrics import Precision, Recall, AUC
 from keras.models import Model
 from keras.optimizers import Adam
 from pycocotools.cocoeval import COCOeval
-from tensorflow import saved_model
 
+import tensorflow as tf
 # import tensorflow_hub as hub
 
 
@@ -14,7 +14,7 @@ def get_premade_model():
     print("### Model from TensorFlow Hub ###")
     print("### HRNet_coco-hrnetv2-w48_1 ###")
     # model = hub.load('https://tfhub.dev/google/HRNet/coco-hrnetv2-w48/1')
-    model = saved_model.load("models/HRNet/")
+    model = tf.saved_model.load("models/HRNet/")
     print("### Model loaded ###")
 
     return model
@@ -107,14 +107,32 @@ def train_model(*, model, train_data, val_data, steps, val_steps, epochs):
     return history
 
 
+@tf.function
+def predict_images(model, image_generator):
+    # Iterate over the images in the generator and make predictions
+    outputs = []
+    for images in image_generator:
+        # Preprocess the images
+        # images = tf.image.resize(images, (224, 224))
+        images = tf.keras.applications.resnet50.preprocess_input(images)
+
+        # Make predictions with the model
+        pred = model(images)
+
+        # Store the predictions
+        outputs.append(pred)
+
+    return outputs
+
+
 def evaluate_model(*, ann_train, train_ids):
     print("\n### Evaluation process ###")
-    cocoEval = COCOeval(cocoGt=ann_train, cocoDt=None)  # iouType is "segm" by default
-    cocoEval.params.imgIds = train_ids
+    coco_eval = COCOeval(cocoGt=ann_train, cocoDt=None)  # iouType is "segm" by default
+    coco_eval.params.imgIds = train_ids
 
     print("### Evaluates detections on every image and every category  ###\n")
-    cocoEval.evaluate()
+    coco_eval.evaluate()
     print("### Accumulates the per-image, per-category evaluation ###\n")
-    cocoEval.accumulate()
+    coco_eval.accumulate()
     print("### Display summary metrics of results ###\n")
-    cocoEval.summarize()
+    coco_eval.summarize()

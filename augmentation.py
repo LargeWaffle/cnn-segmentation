@@ -5,46 +5,16 @@ import matplotlib.gridspec as gridspec
 from keras.preprocessing.image import ImageDataGenerator
 
 
-def getClassName(classID, cats):
-    for i in range(len(cats)):
-        if cats[i]['id'] == classID:
-            return cats[i]['name']
-    return "None"
-
-
-def countFilteredClasses(coco, classes):
-    images = []
-    if classes is not None:
-        # iterate for each individual class in the list
-        for className in classes:
-            # get all images containing given class
-            catIds = coco.getCatIds(catNms=className)
-            imgIds = coco.getImgIds(catIds=catIds)
-            images += coco.loadImgs(imgIds)
-    else:
-        imgIds = coco.getImgIds()
-        images = coco.loadImgs(imgIds)
-
-    # Now, filter out the repeated images
-    unique_images = []
-    for i in range(len(images)):
-        if images[i] not in unique_images:
-            unique_images.append(images[i])
-
-    dataset_size = len(unique_images)
-
-    print("Number of images containing the filter classes:", dataset_size)
-
-
-def augmentationsGenerator(gen, augGeneratorArgs, seed=None):
+def augment_generator(gen, aug_args, seed=None):
     # Initialize the image data generator with args provided
-    image_gen = ImageDataGenerator(**augGeneratorArgs)
+    image_gen = ImageDataGenerator(**aug_args)
 
     # Remove the brightness argument for the mask. Spatial arguments similar to image.
-    augGeneratorArgs_mask = augGeneratorArgs.copy()
-    _ = augGeneratorArgs_mask.pop('brightness_range', None)
+    aug_args_mask = aug_args.copy()
+    _ = aug_args_mask.pop('brightness_range', None)
+
     # Initialize the mask data generator with modified args
-    mask_gen = ImageDataGenerator(**augGeneratorArgs_mask)
+    mask_gen = ImageDataGenerator(**aug_args_mask)
 
     np.random.seed(seed if seed is not None else np.random.choice(range(9999)))
 
@@ -68,18 +38,41 @@ def augmentationsGenerator(gen, augGeneratorArgs, seed=None):
         yield img_aug, mask_aug
 
 
-def visualizeGenerator(gen):
+def augment_data(train_generator, val_generator):
+    aug_args = dict(featurewise_center=False,
+                    samplewise_center=False,
+                    rotation_range=5,
+                    width_shift_range=0.01,
+                    height_shift_range=0.01,
+                    brightness_range=(0.8, 1.2),
+                    shear_range=0.01,
+                    zoom_range=[1, 1.25],
+                    horizontal_flip=True,
+                    vertical_flip=False,
+                    fill_mode='reflect',
+                    data_format='channels_last')
+
+    print("### Data augmentation ###")
+    train_augmentation = augment_generator(train_generator, aug_args)
+    val_augmentation = augment_generator(val_generator, aug_args)
+
+    # aug.visualizeGenerator(train_aug)
+
+    return train_augmentation, val_augmentation
+
+
+def visualize_generator(gen):
     # Iterate the generator to get image and mask batches
     img, mask = next(gen)
 
     fig = plt.figure(figsize=(20, 10))
-    outerGrid = gridspec.GridSpec(1, 2, wspace=0.1, hspace=0.1)
+    outer_grid = gridspec.GridSpec(1, 2, wspace=0.1, hspace=0.1)
 
     for i in range(2):
-        innerGrid = gridspec.GridSpecFromSubplotSpec(2, 2, subplot_spec=outerGrid[i], wspace=0.05, hspace=0.05)
+        inner_grid = gridspec.GridSpecFromSubplotSpec(2, 2, subplot_spec=outer_grid[i], wspace=0.05, hspace=0.05)
 
         for j in range(4):
-            ax = plt.Subplot(fig, innerGrid[j])
+            ax = plt.Subplot(fig, inner_grid[j])
             if i == 1:
                 ax.imshow(mask[j][:, :, 0])
             else:
