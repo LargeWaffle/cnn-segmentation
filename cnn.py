@@ -1,3 +1,4 @@
+import tensorflow as tf
 from keras.layers import Input, Conv2D, MaxPooling2D, Dropout, UpSampling2D, \
     BatchNormalization, Concatenate, Activation, Add
 from keras.losses import CategoricalCrossentropy
@@ -6,7 +7,7 @@ from keras.models import Model
 from keras.optimizers import Adam
 from pycocotools.cocoeval import COCOeval
 
-import tensorflow as tf
+
 # import tensorflow_hub as hub
 
 
@@ -105,24 +106,6 @@ def train_model(*, model, train_data, val_data, steps, val_steps, epochs):
                         verbose=True)
 
     return history
-
-
-@tf.function
-def predict_images(model, image_generator):
-    # Iterate over the images in the generator and make predictions
-    outputs = []
-    for images in image_generator:
-        # Preprocess the images
-        # images = tf.image.resize(images, (224, 224))
-        images = tf.keras.applications.resnet50.preprocess_input(images)
-
-        # Make predictions with the model
-        pred = model(images)
-
-        # Store the predictions
-        outputs.append(pred)
-
-    return outputs
 
 
 def evaluate_model(*, ann_train, train_ids):

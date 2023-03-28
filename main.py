@@ -1,44 +1,38 @@
-import os
-
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-
 import random
 
-from pycocotools.coco import COCO
-from keras.preprocessing.image import ImageDataGenerator
+import tensorflow as tf
 from keras.utils import image_dataset_from_directory
+from pycocotools.coco import COCO
 
 import augmentation as aug
 import helpers as tools
-from cnn import get_model, get_premade_model, train_model, predict_images
+from cnn import get_model, get_premade_model, train_model
 
 nb_epochs = 10
 batch_size = 5
-test_ds_size = 0.2
+test_split = 0.0005
 input_image_size = (224, 224)  # arbitrary, downsize every img
 mask_type = 'normal'  # normal or binary
 
 if __name__ == "__main__":
     data_folder = 'data'
-    annFile = '{}/annotation_folder/annotations/instances_{}2017.json'.format(data_folder, 'train')
-
-    coco = COCO(annFile)
-
-    print("### Loading and selecting categories ###")
-    cats = coco.loadCats(coco.getCatIds())
-    nms = [cat['name'] for cat in cats]
-    desired_classes = random.sample(nms, 10)  # nb of class we take
-    print("Chosen classes:", *desired_classes)
 
     print("### Loading data ###")
-    test_gen = image_dataset_from_directory('./data/images', labels=None, label_mode=None, batch_size=batch_size,
-                                            image_size=input_image_size, validation_split=test_ds_size,
-                                            seed=42, subset='validation')
-
-    del coco
+    test_dataset = image_dataset_from_directory("data/images/folder", labels=None, label_mode=None, batch_size=None,
+                                                image_size=input_image_size, validation_split=test_split,
+                                                subset='validation', seed=random.randint(0, 50))
 
     manual = False
     if manual:
+        ann_file = '{}/annotation_folder/annotations/instances_{}2017.json'.format(data_folder, 'train')
+        coco = COCO(ann_file)
+
+        print("### Loading and selecting categories ###")
+        cats = coco.loadCats(coco.getCatIds())
+        nms = [cat['name'] for cat in cats]
+        desired_classes = random.sample(nms, 10)  # nb of class we take
+        print("Chosen classes:", *desired_classes)
+
         train_img, train_size, coco_train, train_img_ids = tools.filter_dataset(data_folder, desired_classes, 'train')
         val_img, val_size, coco_val, _ = tools.filter_dataset(data_folder, desired_classes, 'val')
 
@@ -66,9 +60,8 @@ if __name__ == "__main__":
 
     # model.summary(expand_nested=True)
 
-    # predictions will have shape (batch_size, h, w, dataset_output_classes)
-    predictions = predict_images(model, test_gen)
+    predictions = test_dataset.flat_map(lambda x: tf.data.Dataset.from_tensor_slices(model.predict([x])))
 
-    tools.preview_results(predictions)
+    tools.preview_results(test_dataset, predictions, input_image_size)
 
     print("\n### End of program ###\n")
