@@ -1,27 +1,13 @@
 import cv2
-import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
 
-"""
-# model = torch.hub.load('pytorch/vision:v0.10.0', 'deeplabv3_resnet101', pretrained=True)
-
 # create a color pallette, selecting a color for each class
 palette = torch.tensor([2 ** 25 - 1, 2 ** 15 - 1, 2 ** 21 - 1])
 colors = torch.as_tensor([i for i in range(21)])[:, None] * palette
-colors = (colors % 255).numpy().astype("uint8")
-
-# plot the semantic segmentation predictions of 21 classes in each color
-r = Image.fromarray(output_predictions.byte().cpu().numpy()).resize(input_image.size)
-r.putpalette(colors)
+colormap = (colors % 255).numpy().astype("uint8")
 """
-
-colormap = []
-for hexcode in mcolors.CSS4_COLORS.values():
-    r, g, b = [int(round(x * 255)) for x in mcolors.to_rgb(hexcode)]
-    colormap.append((r, g, b))
-
 label_colors = np.array([(0, 0, 0),  # 0=background
                          # 1=aeroplane, 2=bicycle, 3=bird, 4=boat, 5=bottle
                          (128, 0, 0), (0, 128, 0), (128, 128, 0), (0, 0, 128), (128, 0, 128),
@@ -32,9 +18,12 @@ label_colors = np.array([(0, 0, 0),  # 0=background
                          # 16=potted plant, 17=sheep, 18=sofa, 19=train, 20=tv/monitor
                          (0, 64, 0), (128, 64, 0), (0, 192, 0), (128, 192, 0), (0, 64, 128)])
 
+"""
+
 
 # Define the helper function
 def decode_segmap(image, nc=21):
+
     r = np.zeros_like(image).astype(np.uint8)
     g = np.zeros_like(image).astype(np.uint8)
     b = np.zeros_like(image).astype(np.uint8)

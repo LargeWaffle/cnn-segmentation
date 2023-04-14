@@ -27,7 +27,7 @@ print("### Model loaded ###")
 print("### Loading data ###")
 test_dataset = image_dataset_from_directory(data_folder + "/folder", labels=None, label_mode=None, batch_size=None,
                                             image_size=input_image_size, validation_split=test_split, color_mode="rgb",
-                                            subset='validation', seed=random.randint(0, 50))
+                                            subset='val', seed=random.randint(0, 50))
 
 
 def create_predictions(test_ds, detection_model):

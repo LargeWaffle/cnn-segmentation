@@ -53,7 +53,7 @@ test_dataset = image_dataset_from_directory(data_folder + "/images/folder",
                                             batch_size=None,
                                             image_size=input_image_size,
                                             validation_split=test_split,
-                                            subset='validation',
+                                            subset='val',
                                             seed=random.randint(0, 50))
 
 
@@ -163,7 +163,7 @@ test_dataset = image_dataset_from_directory(data_folder + "/images/folder",
                                             batch_size=None,
                                             image_size=input_image_size,
                                             validation_split=test_split,
-                                            subset='validation',
+                                            subset='val',
                                             seed=random.randint(0, 50))
 
 print("### Adding data augmentation ###")
