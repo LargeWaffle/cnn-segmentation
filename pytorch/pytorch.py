@@ -1,52 +1,43 @@
-import time
+import torch
+import torch.nn as nn
 
-import torch.utils.data
-import torchvision.datasets as dset
+# from torcheval.metrics import MulticlassF1Score, MulticlassAccuracy, MulticlassAUROC
+from cocodata import get_data
+from models import load_model
+from training import train_model
+from plotters import plot_all
 
-from imgutils import segment_map
+if __name__ == "__main__":
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-from torchvision import models
-from torchvision.models.segmentation import FCN_ResNet101_Weights, DeepLabV3_ResNet101_Weights, \
-    DeepLabV3_MobileNet_V3_Large_Weights
+    print("\nSegmentation project running on", device)
 
+    train_ds, val_ds, test_ds, nb_classes = get_data(input_size=(520, 520), batch_size=2)
 
-def load_model(choice="dlab"):
-    if choice == "dlab":
-        w = DeepLabV3_ResNet101_Weights.COCO_WITH_VOC_LABELS_V1
-        m = models.segmentation.deeplabv3_resnet101(weights=w)
+    # create a color pallette, selecting a color for each class
+    palette = torch.tensor([2 ** 25 - 1, 2 ** 15 - 1, 2 ** 21 - 1])
+    colors = torch.as_tensor([i for i in range(nb_classes)])[:, None] * palette
+    colormap = (colors % 255).numpy().astype("uint8")
 
-    elif choice == "dlab_large":
-        w = DeepLabV3_MobileNet_V3_Large_Weights.COCO_WITH_VOC_LABELS_V1
-        m = models.segmentation.deeplabv3_mobilenet_v3_large(weights=w)
-    else:
-        w = FCN_ResNet101_Weights.COCO_WITH_VOC_LABELS_V1
-        m = models.segmentation.fcn_resnet101(weights=w)
+    ft_extract = True
+    model, params_to_update = load_model(choice="dlab", train=True, nb_class=nb_classes, feat_extract=ft_extract)
+    model = model.to(device)
 
-    return m.eval(), w
+    max_lr = 1e-3
+    epoch = 15
+    weight_decay = 1e-4
 
+    criterion = nn.CrossEntropyLoss()
+    optimizer = torch.optim.AdamW(params_to_update, lr=max_lr, weight_decay=weight_decay)
+    sched = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr, epochs=epoch, steps_per_epoch=len(train_ds))
 
-device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-print("Segmentation project running on", device)
+    dls = {"train": train_ds, "val": val_ds}
 
-test_imgs = dset.ImageFolder(root="../data/images/folder/")
+    history = train_model(model, dls, criterion, optimizer, sched, device, epochs=3)
 
-dataloader = torch.utils.data.DataLoader(test_imgs, batch_size=None, shuffle=True)
+    plot_all(history)
 
-model, w = load_model()
-transformations = w.transforms()
+    # metrics = {'accuracy': MulticlassAccuracy, 'f1_score': MulticlassF1Score, 'auroc': MulticlassAUROC}
+    # inference(seg_model, test_ds, colormap, device, nbinf=5)
 
-for i, (data, _) in enumerate(dataloader):
-    print("Iteration %d" % i)
-    inp = transformations(data).unsqueeze(0).to(device)
-
-    st = time.time()
-    with torch.no_grad():
-        out = model.to(device)(inp)['out']
-    end = time.time()
-
-    print(f"Inference took: {end - st:.2f}", )
-
-    segment_map(out, data)
-
-    if i == 5:
-        break
+    print("Done")
