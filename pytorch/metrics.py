@@ -2,6 +2,40 @@ import numpy as np
 import torch
 
 
+def computeMetrics(confusion):
+    # Init
+    label_count = confusion.shape[0]
+    ious = np.zeros(label_count)
+    maccs = np.zeros(label_count)
+    ious[:] = np.NAN
+    maccs[:] = np.NAN
+
+    # Get true positives, positive predictions and positive ground-truth
+    total = confusion.sum()
+    if total <= 0:
+        raise Exception('Error: Confusion matrix is empty!')
+    tp = np.diagonal(confusion)
+    pos_pred = confusion.sum(axis=0)
+    posGt = confusion.sum(axis=1)
+
+    # Check which classes have elements
+    valid = posGt > 0
+    ious_valid = np.logical_and(valid, posGt + pos_pred - tp > 0)
+
+    # Compute per-class results and frequencies
+    ious[ious_valid] = np.divide(tp[ious_valid], posGt[ious_valid] + pos_pred[ious_valid] - tp[ious_valid])
+    maccs[valid] = np.divide(tp[valid], posGt[valid])
+    freqs = np.divide(posGt, total)
+
+    # Compute evaluation metrics
+    miou = np.mean(ious[ious_valid])
+    fwiou = np.sum(np.multiply(ious[ious_valid], freqs[ious_valid]))
+    macc = np.mean(maccs[valid])
+    pacc = tp.sum() / total
+
+    return miou, fwiou, macc, pacc, ious,
+
+
 def pixel_accuracy(output, mask):
     correct = torch.eq(output, mask).int()
 

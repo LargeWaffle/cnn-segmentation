@@ -39,6 +39,7 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler, nb_class, d
             # Iterate over data.
             for images, masks in dataloaders[phase]:
                 images = images.to(device)
+
                 masks = masks.to(device)
 
                 # zero the parameter gradients
@@ -49,10 +50,12 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler, nb_class, d
                 with torch.set_grad_enabled(phase == 'train'):
 
                     output = model(images)['out']
+
                     soft = torch.nn.functional.softmax(output, dim=1)
                     preds = torch.argmax(soft, dim=1).unsqueeze(1).float()
 
-                    loss = criterion(output, masks)
+                    loss = criterion(preds, masks)
+                    loss.requires_grad = True
 
                     # backward + optimize only if in training phase
                     if phase == 'train':
@@ -66,7 +69,7 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler, nb_class, d
             epoch_loss = running_loss / len(dataloaders[phase].dataset)
             epoch_acc = running_corrects.double() / len(dataloaders[phase].dataset)
 
-            print('{} Loss: {:.4f} Acc: {:.4f}'.format(phase, epoch_loss, epoch_acc))
+            print('{} loss: {:.4f} acc: {:.4f}'.format(phase, epoch_loss, epoch_acc))
 
             # deep copy the model
             if phase == 'val' and epoch_acc > best_acc:

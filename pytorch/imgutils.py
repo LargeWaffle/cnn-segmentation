@@ -47,13 +47,14 @@ def image_overlay(image, segmented_image):
     return image
 
 
-def segment_map(output, img, colormap):
+def segment_map(output, img, colormap, nb_class):
     om = torch.argmax(output.squeeze(), dim=0).detach().cpu().numpy()
 
-    segmented_image = decode_segmap(om, colormap)
+    segmented_image = decode_segmap(om, colormap, nb_class)
 
+    np_img = np.array(img * 255, dtype=np.uint8)
     # Resize to original image size
-    segmented_image = cv2.resize(segmented_image, img.size, cv2.INTER_CUBIC)
-    overlayed_image = image_overlay(img, segmented_image)
+    segmented_image = cv2.resize(segmented_image, om.shape, cv2.INTER_CUBIC)
+    overlayed_image = image_overlay(np_img, segmented_image)
 
     return segmented_image, overlayed_image[:, :, ::-1]

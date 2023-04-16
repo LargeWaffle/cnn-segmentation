@@ -1,7 +1,6 @@
 import os
-import numpy as np
-
-import cv2
+from os import listdir
+from os.path import isfile
 from PIL import Image
 import torch
 import torchvision.transforms.functional as F
@@ -22,18 +21,16 @@ def get_class_name(class_id, cats):
 class CocoDataset(Dataset):
     def __init__(self, root, subset, transform=None):
         print(f"\nLoading {subset} dataset")
-        dataset_path = os.path.join(root + "/images/", subset)
+
+        self.imgs_dir = os.path.join(root + "/images/", subset)
 
         ann_file = os.path.join(root + "/annotation_folder/stuff_annotations/", f"stuff_{subset}2017.json")
-
-        self.imgs_dir = dataset_path
-
         self.coco = COCO(ann_file)
 
         self.classes = self.coco.loadCats(self.coco.getCatIds())
 
-        self.class_names = [cat['name'] for cat in self.classes]
-        self.superclasses = set([cat['supercategory'] for cat in self.classes])
+        self.class_names = sorted([cat['name'] for cat in self.classes])
+        self.superclasses = sorted(set([cat['supercategory'] for cat in self.classes]))
 
         self.img_ids = self.coco.getImgIds()
 
@@ -42,7 +39,6 @@ class CocoDataset(Dataset):
     def __getitem__(self, idx):
         img_id = self.img_ids[idx]
         img_obj = self.coco.loadImgs(img_id)[0]
-        anns = self.coco.loadAnns(self.coco.getAnnIds(img_id))
 
         img = Image.open(os.path.join(self.imgs_dir, img_obj['file_name'])).convert('RGB')
 
@@ -59,6 +55,26 @@ class CocoDataset(Dataset):
 
     def __len__(self):
         return len(self.img_ids)
+
+
+class CocoTestDataset(Dataset):
+    def __init__(self, root, subset, transform=None):
+        print(f"\nLoading {subset} dataset")
+
+        self.imgs_dir = os.path.join(root + "/images/", subset)
+        self.img_names = [f for f in listdir(self.imgs_dir) if isfile(os.path.join(self.imgs_dir, f))]
+        self.transform = transform
+
+    def __getitem__(self, idx):
+        img = Image.open(os.path.join(self.imgs_dir, self.img_names[idx])).convert('RGB')
+
+        if self.transform is not None:
+            img = self.transform(img)
+
+        return img
+
+    def __len__(self):
+        return len(self.img_names)
 
 
 def get_data(input_size, batch_size=64):
@@ -93,7 +109,9 @@ def get_data(input_size, batch_size=64):
 
     val_dl = DataLoader(sub2, batch_size=batch_size, shuffle=True)
 
-    test_imgs = ImageFolder(root="../data/images/folder/", transform=data_transforms["test"])
-    test_dl = DataLoader(test_imgs, batch_size=None, shuffle=True)
+    coco_test = CocoTestDataset(root="../data", subset="test", transform=data_transforms["test"])
+    sub3 = torch.utils.data.Subset(coco_test, range(0, 50))
 
-    return train_dl, val_dl, test_dl, len(coco_train.superclasses)
+    test_dl = DataLoader(sub3, batch_size=None, shuffle=True)
+
+    return train_dl, val_dl, test_dl, len(coco_train.classes)

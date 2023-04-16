@@ -52,12 +52,13 @@ def create_trainable_dlab(model, nb_class):
     return model
 
 
-def inference(model, dataloader, colormap, device, nbinf=5):
+def inference(model, dataloader, colormap, nb_class, device, nbinf=5):
     model = model.eval()
+
     with torch.no_grad():
-        for i, (data, _) in enumerate(dataloader):
+        for i, img in enumerate(dataloader):
             print("Iteration %d" % i)
-            inp = data.unsqueeze(0).to(device)
+            inp = img.unsqueeze(0).to(device)
 
             st = time.time()
             out = model.to(device)(inp)['out']
@@ -65,9 +66,10 @@ def inference(model, dataloader, colormap, device, nbinf=5):
 
             print(f"Inference took: {end - st:.2f}", )
 
-            seg, overlay = segment_map(out, data, colormap)
+            f_img = img.permute(1, 2, 0)
+            seg, overlay = segment_map(out, f_img, colormap, nb_class)
 
-            plot_results(data, seg, overlay)
+            plot_results(f_img, seg, overlay)
 
             if i == nbinf:
                 break
