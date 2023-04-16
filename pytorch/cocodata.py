@@ -20,7 +20,7 @@ def get_class_name(class_id, cats):
 
 class CocoDataset(Dataset):
     def __init__(self, root, subset, transform=None):
-
+        print(f"\nLoading {subset} dataset")
         dataset_path = os.path.join(root + "/images/", subset)
 
         ann_file = os.path.join(root + "/annotation_folder/annotations/", f"instances_{subset}2017.json")
@@ -90,16 +90,16 @@ def get_data(input_size, batch_size=64):
     }
 
     coco_train = CocoDataset(root="../data", subset="train", transform=data_transforms["train"])
-    sub1 = torch.utils.data.Subset(coco_train, range(0, 25))
+    sub1 = torch.utils.data.Subset(coco_train, range(0, 10))
 
-    train_dl = DataLoader(sub1, batch_size=batch_size, shuffle=True, num_workers=4)
+    train_dl = DataLoader(sub1, batch_size=batch_size, shuffle=True)
 
     coco_val = CocoDataset(root="../data", subset="val", transform=data_transforms["val"])
     sub2 = torch.utils.data.Subset(coco_val, range(0, 5))
 
-    val_dl = DataLoader(sub2, batch_size=batch_size, shuffle=True, num_workers=4)
+    val_dl = DataLoader(sub2, batch_size=batch_size, shuffle=True)
 
     test_imgs = ImageFolder(root="../data/images/folder/", transform=data_transforms["test"])
-    test_dl = DataLoader(test_imgs, batch_size=None, shuffle=True, num_workers=4)
+    test_dl = DataLoader(test_imgs, batch_size=None, shuffle=True)
 
     return train_dl, val_dl, test_dl, len(coco_train.class_names)

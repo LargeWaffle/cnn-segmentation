@@ -26,12 +26,15 @@ def load_model(choice="dlab", train=False, feat_extract=True, nb_class=1):
         w = FCN_ResNet101_Weights.DEFAULT
         m = models.segmentation.fcn_resnet101(pretrained=True, progress=True, weights=w)
 
+    if train:
+        m = create_trainable_dlab(m, nb_class)
+
     if feat_extract:
         for param in m.parameters():
             param.requires_grad = False
 
-    if train:
-        m = create_trainable_dlab(m, nb_class)
+        for param in m.classifier.parameters():
+            param.requires_grad = True
 
     params = [param for (name, param) in m.named_parameters() if param.requires_grad]
 
@@ -41,11 +44,10 @@ def load_model(choice="dlab", train=False, feat_extract=True, nb_class=1):
 def create_trainable_dlab(model, nb_class):
     model.aux_classifier = None
 
-    prev_channels = model.classifier[-1].in_channels
+    sample_input = torch.randn(1, 3, 16, 16)  # batch size 1, RGB input image of size 520x520
+    backbone_output = model.backbone(sample_input)['out']  # get output of backbone module
+    prev_channels = backbone_output.shape[1]
     model.classifier = DeepLabHead(prev_channels, nb_class)
-
-    for param in model.classifier.parameters():
-        param.requires_grad = True
 
     return model
 

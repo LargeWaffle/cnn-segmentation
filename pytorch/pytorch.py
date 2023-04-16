@@ -3,7 +3,7 @@ import torch.nn as nn
 
 # from torcheval.metrics import MulticlassF1Score, MulticlassAccuracy, MulticlassAUROC
 from cocodata import get_data
-from models import load_model
+from models import load_model, inference
 from training import train_model
 from plotters import plot_all
 
@@ -21,23 +21,22 @@ if __name__ == "__main__":
 
     ft_extract = True
     model, params_to_update = load_model(choice="dlab", train=True, nb_class=nb_classes, feat_extract=ft_extract)
-    model = model.to(device)
 
     max_lr = 1e-3
-    epoch = 15
+    nb_epoch = 15
     weight_decay = 1e-4
 
     criterion = nn.CrossEntropyLoss()
     optimizer = torch.optim.AdamW(params_to_update, lr=max_lr, weight_decay=weight_decay)
-    sched = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr, epochs=epoch, steps_per_epoch=len(train_ds))
+    sched = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr, epochs=nb_epoch, steps_per_epoch=len(train_ds))
 
     dls = {"train": train_ds, "val": val_ds}
 
-    history = train_model(model, dls, criterion, optimizer, sched, device, epochs=3)
+    model, history = train_model(model, dls, criterion, optimizer, sched, nb_classes, device, epochs=nb_epoch)
 
     plot_all(history)
 
     # metrics = {'accuracy': MulticlassAccuracy, 'f1_score': MulticlassF1Score, 'auroc': MulticlassAUROC}
-    # inference(seg_model, test_ds, colormap, device, nbinf=5)
+    inference(model, test_ds, colormap, device, nbinf=5)
 
-    print("Done")
+    print("End of the program")

@@ -1,14 +1,14 @@
-import torch
-import torch.nn.functional as F
 import numpy as np
+import torch
 
 
 def pixel_accuracy(output, mask):
-    with torch.no_grad():
-        output = torch.argmax(F.softmax(output, dim=1), dim=1)
-        correct = torch.eq(output, mask).int()
-        accuracy = float(correct.sum()) / float(correct.numel())
-    return accuracy
+    correct = torch.eq(output, mask).int()
+
+    accuracy = correct.sum(dim=(1, 2, 3)) / (mask.shape[2] * mask.shape[3])
+    mean_accuracy = accuracy.mean()
+
+    return mean_accuracy.item()
 
 
 def iou(pred, target, n_classes=3):
@@ -28,24 +28,22 @@ def iou(pred, target, n_classes=3):
     return np.array(ious)
 
 
-def mIoU(pred_mask, mask, smooth=1e-10, n_classes=23):
-    with torch.no_grad():
-        pred_mask = F.softmax(pred_mask, dim=1)
-        pred_mask = torch.argmax(pred_mask, dim=1)
-        pred_mask = pred_mask.contiguous().view(-1)
-        mask = mask.contiguous().view(-1)
+def mIoU(pred_mask, mask, n_classes, smooth=1e-10):
+    pred_mask = pred_mask.view(-1)
+    mask = mask.view(-1)
 
-        iou_per_class = []
-        for clas in range(0, n_classes):  # loop per pixel class
-            true_class = pred_mask == clas
-            true_label = mask == clas
+    iou_per_class = []
+    for clas in range(n_classes):
+        true_class = pred_mask == clas
+        true_label = mask == clas
 
-            if true_label.long().sum().item() == 0:  # no exist label in this loop
-                iou_per_class.append(np.nan)
-            else:
-                intersect = torch.logical_and(true_class, true_label).sum().float().item()
-                union = torch.logical_or(true_class, true_label).sum().float().item()
+        intersect = (true_class & true_label).float().sum()
+        union = (true_class | true_label).float().sum()
 
-                iou_val = (intersect + smooth) / (union + smooth)
-                iou_per_class.append(iou_val)
-        return np.nanmean(iou_per_class)
+        if union == 0:
+            iou_per_class.append(np.nan)
+        else:
+            iou_val = (intersect + smooth) / (union + smooth)
+            iou_per_class.append(iou_val)
+
+    return np.nanmean(iou_per_class)
