@@ -6,6 +6,7 @@ from cocodata import get_data
 from models import load_model, inference
 from training import train_model
 from plotters import plot_all
+import matplotlib.pyplot as plt
 
 if __name__ == "__main__":
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -18,6 +19,20 @@ if __name__ == "__main__":
     palette = torch.tensor([2 ** 25 - 1, 2 ** 15 - 1, 2 ** 21 - 1])
     colors = torch.as_tensor([i for i in range(nb_classes)])[:, None] * palette
     colormap = (colors % 255).numpy().astype("uint8")
+
+    for img, mask in train_ds:
+        plt.figure(figsize=(12, 5), dpi=100)
+        plt.subplot(1, 2, 1)
+        plt.axis("off")
+        plt.title("Image")
+        plt.imshow(img[0].permute(1, 2, 0))
+
+        plt.subplot(1, 2, 2)
+        plt.title("Segmentation")
+        plt.axis("off")
+        plt.imshow(mask[0].permute(1, 2, 0))
+
+        plt.show()
 
     ft_extract = True
     model, params_to_update = load_model(choice="dlab", train=True, nb_class=nb_classes, feat_extract=ft_extract)

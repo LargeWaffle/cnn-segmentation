@@ -44,7 +44,7 @@ def load_model(choice="dlab", train=False, feat_extract=True, nb_class=1):
 def create_trainable_dlab(model, nb_class):
     model.aux_classifier = None
 
-    sample_input = torch.randn(1, 3, 16, 16)  # batch size 1, RGB input image of size 520x520
+    sample_input = torch.randn(1, 3, 32, 32)  # batch size 1, RGB input image of size 520x520
     backbone_output = model.backbone(sample_input)['out']  # get output of backbone module
     prev_channels = backbone_output.shape[1]
     model.classifier = DeepLabHead(prev_channels, nb_class)

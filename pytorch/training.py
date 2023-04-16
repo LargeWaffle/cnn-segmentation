@@ -1,5 +1,5 @@
 import time
-
+import copy
 import numpy as np
 import torch
 from tqdm import tqdm
@@ -13,130 +13,75 @@ def get_lr(optimizer):
 
 
 def train_model(model, dataloaders, criterion, optimizer, scheduler, nb_class, device, epochs=15):
-    train_loader, val_loader = dataloaders["train"], dataloaders["val"]
+    model = model.to(device)
 
-    train_losses = []
-    test_losses = []
+    since = time.time()
 
-    val_iou = []
-    val_acc = []
+    val_acc_history = []
 
-    train_iou = []
-    train_acc = []
+    best_model_wts = copy.deepcopy(model.state_dict())
+    best_acc = 0.0
 
-    lrs = []
-    min_loss = np.inf
-    decrease = 1
-    not_improve = 0
+    for epoch in range(epochs):
+        print('Epoch {}/{}'.format(epoch + 1, epochs))
+        print('-' * 10)
 
-    model.to(device)
-    fit_time = time.time()
-    for e in range(epochs):
-        since = time.time()
-        running_loss = 0
-        iou_score = 0
-        accuracy = 0
+        # Each epoch has a training and validation phase
+        for phase in ['train', 'val']:
+            if phase == 'train':
+                model.train()  # Set model to training mode
+            else:
+                model.eval()  # Set model to evaluate mode
 
-        # training loop
-        model.train()
+            running_loss = 0.0
+            running_corrects = 0
 
-        for i, data in enumerate(train_loader):
+            # Iterate over data.
+            for images, masks in dataloaders[phase]:
+                images = images.to(device)
+                masks = masks.to(device)
 
-            # training phase
-            image_tiles, mask_tiles = data
+                # zero the parameter gradients
+                optimizer.zero_grad()
 
-            image = image_tiles.to(device)
-            mask = mask_tiles.to(device)
+                # forward
+                # track history if only in train
+                with torch.set_grad_enabled(phase == 'train'):
 
-            # forward
-            output = model(image)['out']
-            soft = torch.nn.functional.softmax(output, dim=1)
-            preds = torch.argmax(soft, dim=1).unsqueeze(1).float()
-
-            loss = criterion(preds, mask)
-            loss.requires_grad = True
-
-            # backward
-            loss.backward()
-            optimizer.step()  # update weight
-            optimizer.zero_grad()  # reset gradient
-
-            with torch.no_grad():
-                # evaluation metrics
-                iou_score += mIoU(preds, mask, nb_class)
-                accuracy += pixel_accuracy(preds, mask)
-
-            # step the learning rate
-            lrs.append(get_lr(optimizer))
-            scheduler.step()
-
-            running_loss += loss.item()
-        else:
-            model.eval()
-            test_loss = 0
-            test_accuracy = 0
-            val_iou_score = 0
-
-            # validation loop
-            with torch.no_grad():
-                for i, data in enumerate(val_loader):
-                    image_tiles, mask_tiles = data
-
-                    image = image_tiles.to(device)
-                    mask = mask_tiles.to(device)
-
-                    # forward
-                    output = model(image)['out']
+                    output = model(images)['out']
                     soft = torch.nn.functional.softmax(output, dim=1)
                     preds = torch.argmax(soft, dim=1).unsqueeze(1).float()
 
-                    # loss
-                    loss = criterion(preds, mask)
-                    test_loss += loss.item()
+                    loss = criterion(output, masks)
 
-                    # evaluation metrics
-                    val_iou_score += mIoU(preds, mask, nb_class)
-                    test_accuracy += pixel_accuracy(preds, mask)
+                    # backward + optimize only if in training phase
+                    if phase == 'train':
+                        loss.backward()
+                        optimizer.step()
 
-            # calculate mean for each batch
-            train_losses.append(running_loss / len(train_loader))
-            test_losses.append(test_loss / len(val_loader))
+                # statistics
+                running_loss += loss.item() * images.size(0)
+                running_corrects += torch.sum(preds == masks.data)
 
-            if min_loss > (test_loss / len(val_loader)):
-                print('loss_decreasing {:.3f} >> {:.3f} '.format(min_loss, (test_loss / len(val_loader))))
-                min_loss = (test_loss / len(val_loader))
-                decrease += 1
-                if decrease % 5 == 0:
-                    print('saving model...')
-                    torch.save(model, 'dlab_{:.3f}.pt'.format(val_iou_score / len(val_loader)))
+            epoch_loss = running_loss / len(dataloaders[phase].dataset)
+            epoch_acc = running_corrects.double() / len(dataloaders[phase].dataset)
 
-            if (test_loss / len(val_loader)) > min_loss:
-                not_improve += 1
-                min_loss = (test_loss / len(val_loader))
-                print(f'Loss has not decreased for {not_improve} time(s)')
-                if not_improve == 7:
-                    print('Loss has not decreased for 7 times, training stopped')
-                    break
+            print('{} Loss: {:.4f} Acc: {:.4f}'.format(phase, epoch_loss, epoch_acc))
 
-            # iou
-            val_iou.append(val_iou_score / len(val_loader))
-            train_iou.append(iou_score / len(train_loader))
-            train_acc.append(accuracy / len(train_loader))
-            val_acc.append(test_accuracy / len(val_loader))
+            # deep copy the model
+            if phase == 'val' and epoch_acc > best_acc:
+                best_acc = epoch_acc
+                best_model_wts = copy.deepcopy(model.state_dict())
+            if phase == 'val':
+                val_acc_history.append(epoch_acc)
 
-            print("Epoch:{}/{}".format(e + 1, epochs),
-                  "train_loss: {:.3f}".format(running_loss / len(train_loader)),
-                  "val_loss: {:.3f}".format(test_loss / len(val_loader)),
-                  "train_mIoU:{:.3f}".format(iou_score / len(train_loader)),
-                  "val_mIoU: {:.3f}".format(val_iou_score / len(val_loader)),
-                  "train_acc:{:.3f}".format(accuracy / len(train_loader)),
-                  "val_acc:{:.3f}".format(test_accuracy / len(val_loader)),
-                  "Epoch time: {:.2f}m".format((time.time() - since) / 60))
+        print()
 
-    history = {'train_loss': train_losses, 'val_loss': test_losses,
-               'train_miou': train_iou, 'val_miou': val_iou,
-               'train_acc': train_acc, 'val_acc': val_acc, 'lrs': lrs}
+    time_elapsed = time.time() - since
+    print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
+    print('Best val Acc: {:4f}'.format(best_acc))
 
-    print('Total time: {:.2f} m'.format((time.time() - fit_time) / 60))
+    # load best model weights
+    model.load_state_dict(best_model_wts)
 
-    return model, history
+    return model, val_acc_history
