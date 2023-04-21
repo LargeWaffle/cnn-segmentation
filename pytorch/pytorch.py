@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 import torch.nn as nn
 # from torcheval.metrics import MulticlassF1Score, MulticlassAccuracy, MulticlassAUROC
@@ -14,14 +15,13 @@ if __name__ == "__main__":
     print("\nSegmentation project running on", device)
 
     train = False
-    ft_extract = True
-    colormap = getCMap()
-
-    train_ds, val_ds, test_ds, nb_classes = get_data(input_size=(520, 520), batch_size=2)
+    colormap = (getCMap() * 255).astype(np.uint8)
 
     if train:
 
-        model, params_to_update = load_model(choice="dlab", train=train, nb_class=nb_classes, feat_extract=ft_extract)
+        train_ds, val_ds, test_ds, nb_classes = get_data(input_size=(520, 520), batch_size=2)
+
+        model, params_to_update = load_model(choice="dlab", train=train, feat_extract=True, nb_class=nb_classes)
 
         max_lr = 1e-3
         nb_epoch = 5
@@ -37,10 +37,11 @@ if __name__ == "__main__":
 
         plot_all(history)
     else:
-        del train_ds, val_ds
-        model, _ = load_model(choice="dlab", train=train, nb_class=nb_classes, feat_extract=ft_extract)
+        _, _, test_ds, nb_classes = get_data(input_size=(520, 520), batch_size=2)
+
+        model, _ = load_model(choice="dlab", train=train, feat_extract=False, nb_class=nb_classes)
 
         # metrics = {'accuracy': MulticlassAccuracy, 'f1_score': MulticlassF1Score, 'auroc': MulticlassAUROC}
-        inference(model, test_ds, colormap, nb_classes,device, nbinf=5)
+        inference(model, test_ds, colormap, nb_classes, device, nbinf=5)
 
     print("End of the program")
