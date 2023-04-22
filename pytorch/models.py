@@ -1,11 +1,11 @@
 import time
 
 import torch
+import torchvision.transforms as T
 from torchvision import models
 from torchvision.models.segmentation import FCN_ResNet101_Weights, DeepLabV3_ResNet101_Weights, \
     DeepLabV3_MobileNet_V3_Large_Weights
 from torchvision.models.segmentation.deeplabv3 import DeepLabHead
-import torchvision.transforms as T
 
 from imgutils import segment_map
 from plotters import plot_results
@@ -53,17 +53,17 @@ def create_trainable_dlab(model, nb_class):
     return model
 
 
-def inference(model, dataloader, colormap, nb_class, device, nbinf=5):
+def inference(model, dataloader, colormap, cats, nb_class, device, nbinf=5):
     model = model.eval()
 
     with torch.no_grad():
         for i, img in enumerate(dataloader):
             print("Iteration %d" % i)
             inp = img.unsqueeze(0).to(device)
-            input = T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])(inp)
+            inp = T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])(inp)
 
             st = time.time()
-            out = model.to(device)(input)['out']
+            out = model.to(device)(inp)['out']
             end = time.time()
 
             print(f"Inference took: {end - st:.2f}", )
@@ -71,7 +71,20 @@ def inference(model, dataloader, colormap, nb_class, device, nbinf=5):
             f_img = img.permute(1, 2, 0)
             seg, overlay = segment_map(out, f_img, colormap, nb_class)
 
-            plot_results(f_img, seg, overlay)
+            class_names = detect_classes(seg, cats, nb_class)
+
+            plot_results(f_img, seg, overlay, class_names)
 
             if i == nbinf:
                 break
+
+
+def detect_classes(img, cats, nc):
+    detected = []
+    for lp in range(0, nc):
+        idx = img == lp
+
+        if idx.any():
+            detected.append(lp)
+
+    return [cat['name'] for cat in cats[detected]]

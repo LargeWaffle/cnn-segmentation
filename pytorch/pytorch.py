@@ -18,7 +18,8 @@ if __name__ == "__main__":
 
     if train:
 
-        train_ds, val_ds, test_ds, nb_classes = get_data(input_size=(520, 520), batch_size=2)
+        train_ds, val_ds, test_ds, cats = get_data(input_size=(520, 520), batch_size=2)
+        nb_classes = len(cats)
 
         model, params_to_update = load_model(choice="dlab", train=train, feat_extract=True, nb_class=nb_classes)
 
@@ -35,10 +36,11 @@ if __name__ == "__main__":
 
         plot_all(history)
     else:
-        _, _, test_ds, nb_classes = get_data(input_size=(520, 520), batch_size=2)
-
+        _, _, test_ds, cats = get_data(input_size=(520, 520), batch_size=2)
+        nb_classes = len(cats)
         model, _ = load_model(choice="dlab", train=train, feat_extract=False, nb_class=nb_classes)
 
-        inference(model, test_ds, colormap, nb_classes, device, nbinf=5)
+        cats = np.array(cats)
+        inference(model, test_ds, colormap, cats, nb_classes, device, nbinf=5)
 
     print("End of the program")

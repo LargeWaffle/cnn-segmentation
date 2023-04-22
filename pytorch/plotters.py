@@ -18,22 +18,27 @@ def plot_metric(data, lb):
     plt.show()
 
 
-def plot_results(img, segmented_image, overlayed_image):
+def plot_results(img, segmented_image, overlayed_image, cn):
 
-    plt.figure(figsize=(12, 5), dpi=100)
-    plt.subplot(1, 3, 1)
-    plt.axis("off")
-    plt.title("Image")
-    plt.imshow(img)
+    # Create the figure and subplots
+    fig, axs = plt.subplots(1, 4, figsize=(12, 5), dpi=100)
 
-    plt.subplot(1, 3, 2)
-    plt.title("Segmentation")
-    plt.axis("off")
-    plt.imshow(segmented_image)
+    axs[0].axis("off")
+    axs[0].set_title("Image")
+    axs[0].imshow(img)
 
-    plt.subplot(1, 3, 3)
-    plt.title("Overlayed")
-    plt.axis("off")
-    plt.imshow(overlayed_image)
+    axs[1].set_title("Segmentation")
+    axs[1].axis("off")
+    axs[1].imshow(segmented_image)
+
+    axs[2].set_title("Overlayed")
+    axs[2].axis("off")
+    axs[2].imshow(overlayed_image)
+
+    axs[3].set_title("Detected objects")
+    axs[3].axis("off")
+    axs[3].text(0, 0, '\n'.join(cn))
+
+    plt.subplots_adjust(wspace=0.1, hspace=0.1)
 
     plt.show()
