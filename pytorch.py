@@ -35,7 +35,8 @@ if __name__ == "__main__":
 
     model_choice = "dlab"
 
-    class_list = get_classes("../labels.txt")
+    fpath = "full_coco.txt" if train else "pascal.txt"
+    class_list = get_classes(fpath)
     nb_classes = len(class_list)
 
     if train:

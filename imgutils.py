@@ -36,8 +36,21 @@ def image_overlay(image, segmented_image):
     return image
 
 
-def segment_map(output, img, colormap, nb_class):
+def detect_classes(img, cats, nb_class):
+    detected = []
+    for lp in range(0, nb_class):
+        idx = img == lp
+
+        if idx.any():
+            detected.append(lp)
+
+    return [cats[cnb] for cnb in detected]
+
+
+def segment_map(output, img, colormap, cats, nb_class):
     om = torch.argmax(output.squeeze(), dim=0).detach().cpu().numpy()
+
+    cnames = detect_classes(om, cats, nb_class)
 
     segmented_image = decode_segmap(om, colormap, nb_class)
 
@@ -48,4 +61,4 @@ def segment_map(output, img, colormap, nb_class):
 
     overlayed_image = image_overlay(np_img, segmented_image)
 
-    return segmented_image, overlayed_image
+    return segmented_image, overlayed_image, cnames

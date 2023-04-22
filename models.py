@@ -73,22 +73,9 @@ def inference(model, dataloader, cats, nb_class, device, nbinf=5):
             print(f"Inference took: {end - st:.2f}", )
 
             f_img = img.permute(1, 2, 0)
-            seg, overlay = segment_map(out, f_img, colormap, nb_class)
+            seg, overlay, cnames = segment_map(out, f_img, colormap, cats, nb_class)
 
-            class_names = detect_classes(seg, cats, nb_class)
-
-            plot_results(f_img, seg, overlay, class_names)
+            plot_results(f_img, seg, overlay, cnames)
 
             if i == nbinf:
                 break
-
-
-def detect_classes(img, cats, nc):
-    detected = []
-    for lp in range(0, nc):
-        idx = img == lp
-
-        if idx.any():
-            detected.append(lp)
-
-    return [cats[cnb] for cnb in detected]
