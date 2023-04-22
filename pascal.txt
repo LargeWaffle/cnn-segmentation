@@ -1,3 +1,4 @@
+0: unlabeled
 1: aeroplane
 2: bicycle
 3: bird
