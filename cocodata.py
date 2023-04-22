@@ -91,17 +91,17 @@ def get_data(input_size, batch_size=64):
         ]),
     }
 
-    coco_train = CocoDataset(root="../data", subset="train", transform=data_transforms["train"])
+    coco_train = CocoDataset(root="data", subset="train", transform=data_transforms["train"])
     sub1 = torch.utils.data.Subset(coco_train, range(0, 20))
 
     train_dl = DataLoader(sub1, batch_size=batch_size, shuffle=True)
 
-    coco_val = CocoDataset(root="../data", subset="val", transform=data_transforms["val"])
+    coco_val = CocoDataset(root="data", subset="val", transform=data_transforms["val"])
     sub2 = torch.utils.data.Subset(coco_val, range(0, 10))
 
     val_dl = DataLoader(sub2, batch_size=batch_size, shuffle=True)
 
-    coco_test = CocoTestDataset(root="../data", subset="test", transform=data_transforms["test"])
+    coco_test = CocoTestDataset(root="data", subset="test", transform=data_transforms["test"])
     sub3 = torch.utils.data.Subset(coco_test, range(0, 50))
 
     test_dl = DataLoader(sub3, batch_size=None, shuffle=True)
