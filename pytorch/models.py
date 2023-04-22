@@ -5,6 +5,7 @@ from torchvision import models
 from torchvision.models.segmentation import FCN_ResNet101_Weights, DeepLabV3_ResNet101_Weights, \
     DeepLabV3_MobileNet_V3_Large_Weights
 from torchvision.models.segmentation.deeplabv3 import DeepLabHead
+import torchvision.transforms as T
 
 from imgutils import segment_map
 from plotters import plot_results
@@ -59,9 +60,10 @@ def inference(model, dataloader, colormap, nb_class, device, nbinf=5):
         for i, img in enumerate(dataloader):
             print("Iteration %d" % i)
             inp = img.unsqueeze(0).to(device)
+            input = T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])(inp)
 
             st = time.time()
-            out = model.to(device)(inp)['out']
+            out = model.to(device)(input)['out']
             end = time.time()
 
             print(f"Inference took: {end - st:.2f}", )

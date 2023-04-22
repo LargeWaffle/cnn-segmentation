@@ -1,21 +1,14 @@
 import os
 from os import listdir
 from os.path import isfile
-from PIL import Image
+
 import torch
+import torchvision.transforms as T
 import torchvision.transforms.functional as F
+from PIL import Image
 from pycocotools.coco import COCO
 from pycocotools.cocostuffhelper import cocoSegmentationToSegmentationMap
-import torchvision.transforms as T
 from torch.utils.data import DataLoader, Dataset
-from torchvision.datasets import ImageFolder
-
-
-def get_class_name(class_id, cats):
-    for cat in cats:
-        if cat['id'] == class_id:
-            return cat['name']
-    return "None"
 
 
 class CocoDataset(Dataset):
@@ -94,8 +87,7 @@ def get_data(input_size, batch_size=64):
         'test': T.Compose([
             T.Resize(input_size, interpolation=F.InterpolationMode.BILINEAR),
             T.CenterCrop(input_size),
-            T.ToTensor(),
-            T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+            T.ToTensor()
         ]),
     }
 

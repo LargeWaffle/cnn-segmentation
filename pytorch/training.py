@@ -12,12 +12,16 @@ def get_lr(optimizer):
         return param_group['lr']
 
 
-def train_model(model, dataloaders, criterion, optimizer, scheduler, nb_class, device, epochs=15):
+def train_model(model, dataloaders, criterion, optimizer, nb_class, device, epochs=15):
     model = model.to(device)
 
     since = time.time()
 
+    train_acc_history = []
     val_acc_history = []
+
+    train_loss_history = []
+    val_loss_history = []
 
     best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
@@ -51,11 +55,11 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler, nb_class, d
 
                     output = model(images)['out']
 
+                    loss = criterion(output, masks)
+                    loss.requires_grad = True
+
                     soft = torch.nn.functional.softmax(output, dim=1)
                     preds = torch.argmax(soft, dim=1).unsqueeze(1).float()
-
-                    loss = criterion(preds, masks)
-                    loss.requires_grad = True
 
                     # backward + optimize only if in training phase
                     if phase == 'train':
@@ -75,16 +79,27 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler, nb_class, d
             if phase == 'val' and epoch_acc > best_acc:
                 best_acc = epoch_acc
                 best_model_wts = copy.deepcopy(model.state_dict())
+
             if phase == 'val':
                 val_acc_history.append(epoch_acc)
+                val_loss_history.append(epoch_loss)
+            else:
+                train_acc_history.append(epoch_acc)
+                train_loss_history.append(epoch_loss)
 
         print()
 
     time_elapsed = time.time() - since
     print('Training complete in {:.0f}m {:.0f}s'.format(time_elapsed // 60, time_elapsed % 60))
-    print('Best val Acc: {:4f}'.format(best_acc))
+    print('Best val accuracy: {:4f}'.format(best_acc))
 
     # load best model weights
     model.load_state_dict(best_model_wts)
 
-    return model, val_acc_history
+    metrics = {
+        "acc": {"train": train_acc_history, "val": val_acc_history},
+        "loss": {"train": train_loss_history, "val": val_loss_history},
+        "score": {"train": [], "val": []}
+    }
+
+    return model, metrics

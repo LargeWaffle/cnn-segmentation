@@ -1,7 +1,6 @@
 import numpy as np
 import torch
 import torch.nn as nn
-# from torcheval.metrics import MulticlassF1Score, MulticlassAccuracy, MulticlassAUROC
 from pycocotools.cocostuffhelper import getCMap
 
 from cocodata import get_data
@@ -15,7 +14,7 @@ if __name__ == "__main__":
     print("\nSegmentation project running on", device)
 
     train = False
-    colormap = (getCMap() * 255).astype(np.uint8)
+    colormap = (getCMap(addThings=False) * 255).astype(np.uint8)
 
     if train:
 
@@ -29,11 +28,10 @@ if __name__ == "__main__":
 
         criterion = nn.CrossEntropyLoss()
         optimizer = torch.optim.AdamW(params_to_update, lr=max_lr, weight_decay=weight_decay)
-        sched = torch.optim.lr_scheduler.OneCycleLR(optimizer, max_lr, epochs=nb_epoch, steps_per_epoch=len(train_ds))
 
         dls = {"train": train_ds, "val": val_ds}
 
-        model, history = train_model(model, dls, criterion, optimizer, sched, nb_classes, device, epochs=nb_epoch)
+        model, history = train_model(model, dls, criterion, optimizer, nb_classes, device, epochs=nb_epoch)
 
         plot_all(history)
     else:
@@ -41,7 +39,6 @@ if __name__ == "__main__":
 
         model, _ = load_model(choice="dlab", train=train, feat_extract=False, nb_class=nb_classes)
 
-        # metrics = {'accuracy': MulticlassAccuracy, 'f1_score': MulticlassF1Score, 'auroc': MulticlassAUROC}
         inference(model, test_ds, colormap, nb_classes, device, nbinf=5)
 
     print("End of the program")
