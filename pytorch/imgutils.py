@@ -46,10 +46,8 @@ def segment_map(output, img, colormap, nb_class):
     # Resize to original image size
     segmented_image = cv2.resize(segmented_image, om.shape, cv2.INTER_CUBIC)
 
-    masks = om == torch.arange(nb_class)[:, None, None]
-
     np_img = np.array(img * 255, dtype=np.uint8)
 
-    overlayed_image = image_overlay(np_img, masks)
+    overlayed_image = image_overlay(np_img, segmented_image)
 
     return segmented_image, overlayed_image

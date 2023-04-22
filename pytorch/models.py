@@ -11,7 +11,7 @@ from imgutils import segment_map
 from plotters import plot_results
 
 
-def load_model(choice="dlab", train=False, feat_extract=True, nb_class=1):
+def load_model(choice="dlab", train=False, feat_extract=False, nb_class=1):
     print()
     if choice == "dlab":
         print(f"Model is {choice}")

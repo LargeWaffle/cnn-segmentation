@@ -20,24 +20,20 @@ def plot_metric(data, lb):
 
 def plot_results(img, segmented_image, overlayed_image):
 
-    image = F.to_pil_image(img)
-
     plt.figure(figsize=(12, 5), dpi=100)
     plt.subplot(1, 3, 1)
     plt.axis("off")
     plt.title("Image")
-    plt.imshow(image)
+    plt.imshow(img)
 
     plt.subplot(1, 3, 2)
     plt.title("Segmentation")
     plt.axis("off")
     plt.imshow(segmented_image)
 
-    overlay = F.to_pil_image(overlayed_image)
-
     plt.subplot(1, 3, 3)
     plt.title("Overlayed")
     plt.axis("off")
-    plt.imshow(overlay)
+    plt.imshow(overlayed_image)
 
     plt.show()
