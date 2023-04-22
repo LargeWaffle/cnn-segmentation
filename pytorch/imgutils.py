@@ -1,8 +1,6 @@
 import cv2
 import numpy as np
 import torch
-from torchvision.utils import draw_segmentation_masks
-import torchvision.transforms as T
 
 
 # Define the helper function

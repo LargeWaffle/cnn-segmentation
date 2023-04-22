@@ -106,4 +106,4 @@ def get_data(input_size, batch_size=64):
 
     test_dl = DataLoader(sub3, batch_size=None, shuffle=True)
 
-    return train_dl, val_dl, test_dl, coco_train.classes
+    return train_dl, val_dl, test_dl

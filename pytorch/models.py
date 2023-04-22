@@ -53,8 +53,12 @@ def create_trainable_dlab(model, nb_class):
     return model
 
 
-def inference(model, dataloader, colormap, cats, nb_class, device, nbinf=5):
+def inference(model, dataloader, cats, nb_class, device, nbinf=5):
     model = model.eval()
+
+    palette = torch.tensor([2 ** 25 - 1, 2 ** 15 - 1, 2 ** 21 - 1])
+    colors = torch.as_tensor([i for i in range(nb_class)])[:, None] * palette
+    colormap = (colors % 255).numpy().astype("uint8")
 
     with torch.no_grad():
         for i, img in enumerate(dataloader):
@@ -87,4 +91,4 @@ def detect_classes(img, cats, nc):
         if idx.any():
             detected.append(lp)
 
-    return [cat['name'] for cat in cats[detected]]
+    return [cats[cnb] for cnb in detected]
