@@ -55,11 +55,11 @@ def train_model(model, dataloaders, criterion, optimizer, nb_class, device, epoc
 
                     output = model(images)['out']
 
-                    loss = criterion(output, masks)
-                    loss.requires_grad = True
-
                     soft = torch.nn.functional.softmax(output, dim=1)
                     preds = torch.argmax(soft, dim=1).unsqueeze(1).float()
+
+                    loss = criterion(preds, masks)
+                    loss.requires_grad = True
 
                     # backward + optimize only if in training phase
                     if phase == 'train':

@@ -1,7 +1,5 @@
-import numpy as np
 import torch
 import torch.nn as nn
-from pycocotools.cocostuffhelper import getCMap
 
 from cocodata import get_data
 from models import load_model, inference
@@ -29,24 +27,20 @@ if __name__ == "__main__":
 
     print("\nSegmentation project running on", device)
 
-    train = False
+    train = True
     in_size = (520, 520)
     b_size = 2
 
     model_choice = "dlab"
 
-    fpath = "full_coco.txt" if train else "pascal.txt"
-    class_list = get_classes(fpath)
-    nb_classes = len(class_list)
-
     if train:
 
-        train_ds, val_ds, test_ds, cats = get_data(input_size=in_size, batch_size=b_size)
+        train_ds, val_ds, test_ds, nb_classes = get_data(input_size=in_size, batch_size=b_size, sup=True)
 
         model, params_to_update = load_model(choice=model_choice, train=train, feat_extract=True, nb_class=nb_classes)
 
         max_lr = 1e-3
-        nb_epoch = 5
+        nb_epoch = 2
         weight_decay = 1e-4
 
         criterion = nn.CrossEntropyLoss()
@@ -58,7 +52,10 @@ if __name__ == "__main__":
 
         plot_all(history)
     else:
-        _, _, test_ds = get_data(input_size=in_size, batch_size=b_size)
+        class_list = get_classes("pascal.txt")
+        nb_classes = len(class_list)
+
+        _, _, test_ds, _ = get_data(input_size=in_size, batch_size=b_size)
 
         model, _ = load_model(choice=model_choice)
 

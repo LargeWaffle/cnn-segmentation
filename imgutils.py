@@ -4,7 +4,7 @@ import torch
 
 
 # Define the helper function
-def decode_segmap(image, colormap, nc=21):
+def decode_segmap(image, colormap, nc):
     r = np.zeros_like(image).astype(np.uint8)
     g = np.zeros_like(image).astype(np.uint8)
     b = np.zeros_like(image).astype(np.uint8)
