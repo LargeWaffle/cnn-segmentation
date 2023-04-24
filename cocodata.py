@@ -17,7 +17,7 @@ class CocoDataset(Dataset):
 
         self.imgs_dir = os.path.join(root + "/images/", subset)
 
-        ann_file = os.path.join(root + "/annotation/", f"instances_{subset}2017.json")
+        ann_file = os.path.join(root + "/annotations/", f"instances_{subset}2017.json")
         self.coco = COCO(ann_file)
 
         self.sup = sup
