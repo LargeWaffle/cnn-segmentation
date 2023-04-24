@@ -2,6 +2,7 @@ import os
 from os import listdir
 from os.path import isfile
 
+import matplotlib.pyplot
 import numpy as np
 import torch
 import torchvision.transforms as T
@@ -28,6 +29,7 @@ class CocoDataset(Dataset):
         self.superclasses = list(set([cat['supercategory'] for cat in self.classes]))
 
         self.target_classes = len(self.superclasses) if self.sup else len(self.classes)
+        self.target_classes += 1
 
         self.img_ids = self.coco.getImgIds()
 
@@ -58,14 +60,20 @@ class CocoDataset(Dataset):
                 class_index = self.assign_class(cl['id'], 'supercategory')
                 mask[idx] = self.superclasses.index(class_index) + 1
 
+            idx = mask >= self.target_classes
+            mask[idx] = 0
+
         mask = Image.fromarray(mask)
 
         if self.transform is not None:
             img = self.transform(img)
+            img = T.ToTensor()(img)
             img = T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])(img)
-            mask = self.transform(mask)
 
-        return img, mask
+            mask = self.transform(mask)
+            mask = T.PILToTensor()(mask)
+
+        return img, mask.long()
 
     def __len__(self):
         return len(self.img_ids)
@@ -94,16 +102,13 @@ class CocoTestDataset(Dataset):
 def get_data(input_size, batch_size=64, sup=False):
     data_transforms = {
         'train': T.Compose([
-            # T.RandomResizedCrop(input_size),
-            # T.RandomHorizontalFlip(),
+            T.RandomHorizontalFlip(p=0.5),
             T.Resize(input_size, interpolation=F.InterpolationMode.BILINEAR),
-            T.CenterCrop(input_size),
-            T.ToTensor(),
+            T.CenterCrop(input_size)
         ]),
         'val': T.Compose([
             T.Resize(input_size, interpolation=F.InterpolationMode.BILINEAR),
             T.CenterCrop(input_size),
-            T.ToTensor(),
         ]),
         'test': T.Compose([
             T.Resize(input_size, interpolation=F.InterpolationMode.BILINEAR),
@@ -113,12 +118,12 @@ def get_data(input_size, batch_size=64, sup=False):
     }
 
     coco_train = CocoDataset(root="data", subset="train", transform=data_transforms["train"], sup=sup)
-    sub1 = torch.utils.data.Subset(coco_train, range(0, 20))
+    sub1 = torch.utils.data.Subset(coco_train, range(0, 10))
 
     train_dl = DataLoader(sub1, batch_size=batch_size, shuffle=True)
 
     coco_val = CocoDataset(root="data", subset="val", transform=data_transforms["val"], sup=sup)
-    sub2 = torch.utils.data.Subset(coco_val, range(0, 10))
+    sub2 = torch.utils.data.Subset(coco_val, range(0, 5))
 
     val_dl = DataLoader(sub2, batch_size=batch_size, shuffle=True)
 

@@ -39,12 +39,11 @@ if __name__ == "__main__":
 
         model, params_to_update = load_model(choice=model_choice, train=train, feat_extract=True, nb_class=nb_classes)
 
-        max_lr = 1e-3
+        lr = 1e-4
         nb_epoch = 2
-        weight_decay = 1e-4
 
-        criterion = nn.CrossEntropyLoss()
-        optimizer = torch.optim.AdamW(params_to_update, lr=max_lr, weight_decay=weight_decay)
+        criterion = nn.CrossEntropyLoss(ignore_index=0)
+        optimizer = torch.optim.Adam(model.parameters(), lr=lr)
 
         dls = {"train": train_ds, "val": val_ds}
 
@@ -61,7 +60,8 @@ if __name__ == "__main__":
 
         inference(model, test_ds, class_list, nb_classes, device, nbinf=5)
 
-    print("End of the program")
+    print("\nEnd of the program")
+
     """
     from gui import App
 
