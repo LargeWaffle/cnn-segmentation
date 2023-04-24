@@ -103,7 +103,6 @@ class CocoTestDataset(Dataset):
 def get_data(input_size, batch_size=64, sup=False):
     data_transforms = {
         'train': T.Compose([
-            T.RandomHorizontalFlip(p=0.5),
             T.Resize(input_size, interpolation=F.InterpolationMode.BILINEAR),
             T.CenterCrop(input_size)
         ]),
