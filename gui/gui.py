@@ -61,6 +61,10 @@ class App(Tk):
 
     def select_file(self):
         file = filedialog.askopenfilename(title="Select an image", filetypes=[("Image file", "*.jpg *.jpeg *.png")])
+
+        if file == "" or file is None:
+            return
+
         image = Image.open(file)
         image.thumbnail(self.IMGSIZE, Image.LANCZOS)
 
