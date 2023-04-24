@@ -1,4 +1,3 @@
-import torchvision.transforms.functional as F
 import matplotlib.pyplot as plt
 
 
@@ -19,7 +18,6 @@ def plot_metric(data, lb):
 
 
 def plot_results(img, segmented_image, overlayed_image, cn):
-
     # Create the figure and subplots
     fig, axs = plt.subplots(1, 4, figsize=(12, 5), dpi=100)
 
@@ -42,3 +40,18 @@ def plot_results(img, segmented_image, overlayed_image, cn):
     plt.subplots_adjust(wspace=0.1, hspace=0.1)
 
     plt.show()
+
+
+def get_classes(fpath):
+    # Initialize dictionary
+    label_dict = {}
+
+    # Open file and read each line
+    with open(fpath, 'r') as f:
+        for line in f:
+            line = line.strip()
+            label_id, label_name = line.split(': ')
+
+            label_dict[int(label_id)] = label_name
+
+    return label_dict

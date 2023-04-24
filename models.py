@@ -8,11 +8,12 @@ from torchvision.models.segmentation import FCN_ResNet101_Weights, DeepLabV3_Res
 from torchvision.models.segmentation.deeplabv3 import DeepLabHead
 
 from imgutils import segment_map
-from plotters import plot_results
+from tools import plot_results
 
 
 def load_model(choice="dlab", train=False, feat_extract=False, nb_class=1):
     print()
+
     if choice == "dlab":
         print(f"Model is {choice}")
         w = DeepLabV3_ResNet101_Weights.DEFAULT
@@ -22,10 +23,14 @@ def load_model(choice="dlab", train=False, feat_extract=False, nb_class=1):
         print(f"Model is {choice}")
         w = DeepLabV3_MobileNet_V3_Large_Weights.DEFAULT
         m = models.segmentation.deeplabv3_mobilenet_v3_large(pretrained=True, progress=True, weights=w)
-    else:
+    elif choice == "fcn":
         print(f"Model is FCN")
         w = FCN_ResNet101_Weights.DEFAULT
         m = models.segmentation.fcn_resnet101(pretrained=True, progress=True, weights=w)
+    else:
+        return
+
+    m.aux_classifier = None
 
     if train:
         m = create_trainable_dlab(m, nb_class)
@@ -43,7 +48,6 @@ def load_model(choice="dlab", train=False, feat_extract=False, nb_class=1):
 
 
 def create_trainable_dlab(model, nb_class):
-    model.aux_classifier = None
 
     sample_input = torch.randn(1, 3, 32, 32)  # batch size 1, RGB input image of size 520x520
     backbone_output = model.backbone(sample_input)['out']  # get output of backbone module

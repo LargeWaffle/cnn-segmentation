@@ -28,8 +28,9 @@ class CocoDataset(Dataset):
         self.class_names = [cat['name'] for cat in self.classes]
         self.superclasses = list(set([cat['supercategory'] for cat in self.classes]))
 
-        self.target_classes = len(self.superclasses) if self.sup else len(self.classes)
-        self.target_classes += 1
+        self.target_classes = self.superclasses if self.sup else self.classes
+
+        self.target_classes_nb = len(self.target_classes) + 1
 
         self.img_ids = self.coco.getImgIds()
 
@@ -60,7 +61,7 @@ class CocoDataset(Dataset):
                 class_index = self.assign_class(cl['id'], 'supercategory')
                 mask[idx] = self.superclasses.index(class_index) + 1
 
-            idx = mask >= self.target_classes
+            idx = mask >= self.target_classes_nb
             mask[idx] = 0
 
         mask = Image.fromarray(mask)
@@ -132,4 +133,6 @@ def get_data(input_size, batch_size=64, sup=False):
 
     test_dl = DataLoader(sub3, batch_size=None, shuffle=True)
 
-    return train_dl, val_dl, test_dl, coco_train.target_classes
+    cats = ['unlabeled'] + coco_train.target_classes
+
+    return train_dl, val_dl, test_dl, cats
