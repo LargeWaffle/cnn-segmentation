@@ -62,3 +62,9 @@ if __name__ == "__main__":
         inference(model, test_ds, class_list, nb_classes, device, nbinf=5)
 
     print("End of the program")
+    """
+    from gui import App
+
+    app = App(appw=1400, appy=600)
+    app.mainloop()
+    """
