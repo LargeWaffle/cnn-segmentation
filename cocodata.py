@@ -2,7 +2,6 @@ import os
 from os import listdir
 from os.path import isfile
 
-import matplotlib.pyplot
 import numpy as np
 import torch
 import torchvision.transforms as T
@@ -10,7 +9,6 @@ import torchvision.transforms.functional as F
 from PIL import Image
 from pycocotools.coco import COCO
 from torch.utils.data import DataLoader, Dataset
-import cv2
 
 
 class CocoDataset(Dataset):
