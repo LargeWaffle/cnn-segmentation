@@ -98,7 +98,7 @@ class CocoTestDataset(Dataset):
         return len(self.img_names)
 
 
-def get_data(input_size, batch_size=64, sup=False):
+def get_data(input_size, batch_size=64, sup=False, gui=False):
     data_transforms = {
         'train': T.Compose([
             T.Resize(input_size, interpolation=F.InterpolationMode.BILINEAR),
@@ -115,18 +115,21 @@ def get_data(input_size, batch_size=64, sup=False):
         ]),
     }
 
+    sharetrain = 3 if gui else 15
+    shareval = 3 if gui else 5
+
     coco_train = CocoDataset(root="data", subset="train", transform=data_transforms["train"], sup=sup)
-    sub1 = torch.utils.data.Subset(coco_train, range(0, 10))
+    sub1 = torch.utils.data.Subset(coco_train, range(0, sharetrain))
 
     train_dl = DataLoader(sub1, batch_size=batch_size, shuffle=True)
 
     coco_val = CocoDataset(root="data", subset="val", transform=data_transforms["val"], sup=sup)
-    sub2 = torch.utils.data.Subset(coco_val, range(0, 5))
+    sub2 = torch.utils.data.Subset(coco_val, range(0, shareval))
 
     val_dl = DataLoader(sub2, batch_size=batch_size, shuffle=True)
 
     coco_test = CocoTestDataset(root="data", subset="test", transform=data_transforms["test"])
-    sub3 = torch.utils.data.Subset(coco_test, range(0, 10))
+    sub3 = torch.utils.data.Subset(coco_test, range(0, 50))
 
     test_dl = DataLoader(sub3, batch_size=None, shuffle=True)
 

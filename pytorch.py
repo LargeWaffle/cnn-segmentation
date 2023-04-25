@@ -50,7 +50,7 @@ if __name__ == "__main__":
         plot_all(history)
     else:
 
-        _, _, test_ds, cats = get_data(input_size=in_size, batch_size=b_size, sup=True)
+        _, _, test_ds, cats = get_data(input_size=in_size, batch_size=None, sup=True)
 
         # load trained model if available
         m_path = f"pytorch_models/{model_choice}/{model_choice}{appendix}.pt"
