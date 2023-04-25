@@ -1,7 +1,15 @@
+import time
 from tkinter import *
 from tkinter import filedialog
 from tkinter.ttk import *
+
+import torch
+import torchvision.transforms as T
 from PIL import Image, ImageTk
+
+import models
+from imgutils import segment_map
+from tools import get_classes
 
 
 class App(Tk):
@@ -13,8 +21,26 @@ class App(Tk):
         self.GRIDPADX = 15
         self.GRIDPADY = 15
 
-        imgw = (appw // 3) - self.GRIDPADX
+        imgw = (appw // 4) - self.GRIDPADX
         self.IMGSIZE = (imgw, imgw)
+
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+        self.cats = get_classes("pascal.txt")
+        self.nb_classes = len(self.cats)
+
+        palette = torch.tensor([2 ** 25 - 1, 2 ** 15 - 1, 2 ** 21 - 1])
+        colors = torch.as_tensor([i for i in range(self.nb_classes)])[:, None] * palette
+        self.colormap = (colors % 255).numpy().astype("uint8")
+
+        self.transform = T.Compose([
+            T.Resize(self.IMGSIZE),
+            T.CenterCrop(self.IMGSIZE),
+            T.ToTensor()
+        ])
+
+        self.model = models.load_model("dlab")[0].eval()
+        self.inf_img = None
 
         self.geometry(f'{appw}x{appy}+0+0')
         self.resizable(False, False)
@@ -35,7 +61,7 @@ class App(Tk):
         Button(self.buttonframe, text="Choose image", command=self.select_file) \
             .grid(row=0, column=1, padx=self.GRIDPADX, pady=self.GRIDPADY, sticky='nw')
 
-        Button(self.buttonframe, text="Regenerate", command=self.rerun) \
+        Button(self.buttonframe, text="Regenerate", command=self.inference) \
             .grid(row=0, column=2, padx=self.GRIDPADX, pady=self.GRIDPADY, sticky='nw')
 
         Button(self.buttonframe, text="Quit", command=self.destroy) \
@@ -56,8 +82,23 @@ class App(Tk):
         tkobj['image'] = photo
         tkobj.photo = photo
 
-    def rerun(self):
-        pass
+    def inference(self):
+
+        if self.inf_img is not None:
+            with torch.no_grad():
+                inp = self.inf_img.unsqueeze(0).to(self.device)
+                inp = T.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])(inp)
+
+                st = time.time()
+                out = self.model.to(self.device)(inp)['out']
+                end = time.time()
+
+            print(f"Inference took: {end - st:.2f}", )
+
+            f_img = self.inf_img.permute(1, 2, 0)
+            seg, overlay, cnames = segment_map(out, f_img, self.colormap, self.cats, self.nb_classes)
+
+            return seg, overlay, cnames
 
     def select_file(self):
         file = filedialog.askopenfilename(title="Select an image", filetypes=[("Image file", "*.jpg *.jpeg *.png")])
@@ -69,16 +110,31 @@ class App(Tk):
         image.thumbnail(self.IMGSIZE, Image.LANCZOS)
 
         photo = ImageTk.PhotoImage(image)
+        self.inf_img = self.transform(image)
+
+        seg, over, cnames = self.inference()
+
+        seg = Image.fromarray(seg)
+        over = Image.fromarray(over)
+
+        seg.thumbnail(self.IMGSIZE, Image.LANCZOS)
+        over.thumbnail(self.IMGSIZE, Image.LANCZOS)
+
+        seg = ImageTk.PhotoImage(seg)
+        over = ImageTk.PhotoImage(over)
 
         self.anchor_photo(self.img1, photo)
-        self.anchor_photo(self.img2, photo)
-        self.anchor_photo(self.img3, photo)
+        self.anchor_photo(self.img2, seg)
+        self.anchor_photo(self.img3, over)
 
         self.ctitle.grid(row=3, column=0, padx=self.GRIDPADX, pady=self.GRIDPADY, sticky='nw')
 
         labels = []
-        cnames = ["yo", "bro", "whatup", "haha"]
 
         for count, n in enumerate(cnames):
             labels.append(Label(self.classframe, text=n, font=("Arial Bold", 10)))
             labels[count].grid(row=0, column=count, padx=self.GRIDPADX, pady=self.GRIDPADY, sticky='nw')
+
+
+app = App(appw=1400, appy=750)
+app.mainloop()

@@ -9,6 +9,7 @@ from tools import plot_all, get_classes
 from training import train_model
 
 if __name__ == "__main__":
+
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     print("\nSegmentation project running on", device)
@@ -67,10 +68,3 @@ if __name__ == "__main__":
         inference(model, test_ds, cats, nb_classes, device, nbinf=5)
 
     print("\nEnd of the program")
-
-    """
-    from gui import App
-
-    app = App(appw=1400, appy=600)
-    app.mainloop()
-    """
