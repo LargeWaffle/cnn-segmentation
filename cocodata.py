@@ -59,7 +59,7 @@ class CocoDataset(Dataset):
                 class_index = self.assign_class(cl['id'], 'supercategory')
                 mask[idx] = self.superclasses.index(class_index) + 1
 
-            idx = mask >= self.target_classes_nb
+            idx = mask > self.target_classes_nb
             mask[idx] = 0
 
         mask = Image.fromarray(mask)
