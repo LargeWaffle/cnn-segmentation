@@ -20,7 +20,7 @@ if __name__ == "__main__":
     b_size = 2
 
     # model selection
-    model_choice = "dlab"
+    model_choice = "dlab_large"
     ft = True
     appendix = "_ft" if ft else ""
 
