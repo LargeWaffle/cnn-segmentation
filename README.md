@@ -19,7 +19,7 @@ The expected file structure if you use the MS COCO Dataset locally is :
 ├── data  
 │   ├── images  
 │   │   ├── train  
-│   │   └── val  
+│   │   ├── val  
 │   │   └── test  
 │   └── annotations  
 └── ...  
