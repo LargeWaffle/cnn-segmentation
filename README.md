@@ -22,11 +22,10 @@ The expected file structure if you use the MS COCO Dataset locally is :
 │   │   └── val
 │   │   └── test
 │   └── annotations
-├── ...
 └── ...
 
 ## Running the GUI
 
 You can use it without the MS COCO dataset if you set the 'coco' parameter to False
 
-Kaggle notebook used for training [Link](https://www.kaggle.com/code/thomassirvent/semantic-segmentation-with-pytorch)
+Kaggle notebook used for training : [Link](https://www.kaggle.com/code/thomassirvent/semantic-segmentation-with-pytorch)
