@@ -38,7 +38,7 @@ if __name__ == "__main__":
         lr = 1e-4
         nb_epoch = 3
 
-        criterion = nn.CrossEntropyLoss(ignore_index=0)
+        criterion = nn.CrossEntropyLoss()
         optimizer = torch.optim.Adam(params_to_update, lr=lr)
 
         dls = {"train": train_ds, "val": val_ds}
