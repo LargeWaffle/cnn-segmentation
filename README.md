@@ -4,7 +4,7 @@ Heavily relies on transfer learning.
  
 ## Running the scripts
 
-You can run : 
+You can run the **main** script : 
 - training for finetuning
 - training for feature extraction
 - inference
@@ -28,6 +28,7 @@ The expected file structure if you use the MS COCO Dataset locally is :
 
 ## Running the GUI
 
+You can run the **gui** script
 You can use it without the MS COCO dataset if you set the 'coco' parameter to False
 
 Kaggle notebook used for training : [link](https://www.kaggle.com/code/thomassirvent/semantic-segmentation-with-pytorch)
