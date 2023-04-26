@@ -154,3 +154,4 @@ data/
 tensorflow/
 tf_models/
 pytorch_models/
+seg-tool.exe
