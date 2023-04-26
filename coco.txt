@@ -1,0 +1,13 @@
+0: unlabeled
+1: kitchen
+2: person
+3: food
+4: appliance
+5: animal
+6: electronic
+7: outdoor
+8: furniture
+9: indoor
+10: vehicle
+11: accessory
+12: sports

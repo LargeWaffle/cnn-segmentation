@@ -58,7 +58,7 @@ if __name__ == "__main__":
         if os.path.exists(m_path):
             print("Model file found, using pretrained model for inference\n")
             nb_classes = len(cats)
-            model = torch.load(m_path)
+            model = torch.load(m_path, map_location=device)
         else:
             print("Model file not found, using Pytorch's model for inference\n")
             cats = get_classes("pascal.txt")

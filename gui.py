@@ -15,8 +15,10 @@ from tools import get_classes
 
 
 class App(Tk):
-    def __init__(self, appw, appy):
+    def __init__(self, appw, appy, coco=False):
         super().__init__()
+
+        self.coco = coco
 
         self.inf_img = None
         self.model = None
@@ -34,8 +36,12 @@ class App(Tk):
 
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-        _, _, self.test_ds, self.supcats = get_data(input_size=self.IMGSIZE, batch_size=None, sup=True, gui=True)
+        self.supcats = get_classes("coco.txt")
         self.pascal_cats = get_classes("pascal.txt")
+
+        if self.coco:
+            _, _, self.test_ds, _ = get_data(input_size=self.IMGSIZE, batch_size=None, sup=True, gui=True)
+
         self.cats = self.pascal_cats
         self.nb_classes = len(self.cats)
 
@@ -127,7 +133,8 @@ class App(Tk):
             T.ToTensor()
         ])
 
-        self.model_choice = "dlab"
+        self.cats = self.pascal_cats
+        self.model_choice = "dlab_large"
         self.model = models.load_model(self.model_choice)[0].eval()
 
     def load_custom(self):
@@ -137,12 +144,13 @@ class App(Tk):
 
         if os.path.exists(path):
             print("Model file found, using pretrained model for inference\n")
-            self.nb_classes = len(self.supcats)
+            self.cats = self.supcats
+            self.nb_classes = len(self.cats)
 
             colors = torch.as_tensor([i for i in range(self.nb_classes)])[:, None] * self.palette
             self.colormap = (colors % 255).numpy().astype("uint8")
 
-            self.model = torch.load(path)
+            self.model = torch.load(path, map_location=self.device)
 
     def anchor_photo(self, tkobj, photo):
         tkobj['image'] = photo
@@ -174,14 +182,15 @@ class App(Tk):
             self.labels[count].grid(row=0, column=count, padx=self.GRIDPADX, pady=self.GRIDPADY, sticky='nw')
 
     def generate(self):
-        self.inf_img = next(iter(self.test_ds))
+        if self.coco:
+            self.inf_img = next(iter(self.test_ds))
 
-        photo = T.ToPILImage()(self.inf_img)
-        photo = ImageTk.PhotoImage(photo)
+            photo = T.ToPILImage()(self.inf_img)
+            photo = ImageTk.PhotoImage(photo)
 
-        seg, over, cnames = self.inference()
+            seg, over, cnames = self.inference()
 
-        self.load_results(photo, seg, over, cnames)
+            self.load_results(photo, seg, over, cnames)
 
     def inference(self):
 
@@ -218,5 +227,5 @@ class App(Tk):
         self.load_results(photo, seg, over, cnames)
 
 
-app = App(appw=1400, appy=780)
+app = App(appw=1400, appy=780, coco=False)
 app.mainloop()
