@@ -17,13 +17,13 @@ A DeepLab MobileNet example is already there, you can load it by setting **model
 
 The expected file structure if you use the MS COCO Dataset locally is :
  
-- data  
+-- data  
   -- images  
       -- train  
       -- val  
       -- test  
   -- annotations  
-- * 
+-- * 
 
 ## Running the GUI
 
