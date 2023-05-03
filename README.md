@@ -1,6 +1,9 @@
 # cnn-segmentation
 CNN based Deep Learning project for image segmentation.
 Heavily relies on transfer learning.
+
+## Training
+The available model has been trained with Kaggle, to take adavantage of the GPU. [Kaggle notebook](https://www.kaggle.com/code/thomassirvent/semantic-segmentation-with-pytorch)
  
 ## Running the scripts
 
@@ -11,7 +14,7 @@ You can run the *main.py* script in order to :
 
 ...depending on the values of the booleans **train**, and **ft**
 
-See PyTorch's definitions of these terms [link](https://pytorch.org/tutorials/beginner/finetuning_torchvision_models_tutorial.html)
+See PyTorch's definitions of these terms. [Pytorch's documentation](https://pytorch.org/tutorials/beginner/finetuning_torchvision_models_tutorial.html)
 
 A DeepLab MobileNet example is already there, you can load it by setting **model_choice** to 'dlab_large'
 
